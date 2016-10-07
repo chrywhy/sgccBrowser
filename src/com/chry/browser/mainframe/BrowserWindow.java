@@ -100,9 +100,7 @@ public class BrowserWindow {
     private MenuItem _mIE6;
     private MenuItem _mFireFox;
 
-    private BookMark _lastShownBookmark;
     int _bookBarWidth;
-    private Map<String, Menu> _menuFolders = new HashMap<String, Menu>();
     
     private Composite _centerArea;
     private ToolBar _bookBar;
@@ -577,7 +575,9 @@ public class BrowserWindow {
         book.setImage(bookmark.getIcon());
         book.setText(title);
         if (bookmark.type==BookMark.Type.folder) {
-        	_attachFolderMenu(book, _menuFolders.get(bookmark.name));
+        	Menu menu = new Menu(_shell, SWT.POP_UP);
+            _createFolderMenu(menu, bookmark.children);
+        	_attachFolderMenu(book, menu);
         } else {
             book.setToolTipText(title + "\n" + bookmark.url);
             book.setData("url", bookmark.url);
@@ -606,13 +606,6 @@ public class BrowserWindow {
         _centerArea = new Composite(_shell, SWT.NONE);
         _centerArea.setLayoutData(BorderLayout.CENTER);
         _centerArea.setLayout(new BorderLayout(0, 0));
-        for (BookMark bookmark : BookMark.bookMarks) {
-        	if (bookmark.type == BookMark.Type.folder) {
-            	Menu menu = new Menu(_shell, SWT.POP_UP);
-                _createFolderMenu(menu, bookmark.children);
-        		_menuFolders.put(bookmark.name, menu);
-        	}
-        }
     }
     
     private Menu _attachFolderMenu(final ToolItem folderItem, final Menu menu) {
@@ -694,7 +687,6 @@ public class BrowserWindow {
 	                continue;
 	            }
 	            _bookBarWidth = width;
-	            _lastShownBookmark = bookmark;
         	} else if (moreMenu != null) {
     			_addBookmarkToMenu(moreMenu, bookmark);
         	} else {
