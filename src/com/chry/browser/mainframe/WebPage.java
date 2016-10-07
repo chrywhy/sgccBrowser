@@ -209,6 +209,7 @@ public class WebPage extends CTabItem {
 					}
 				}
             	setCurUrl(_browser.getUrl());
+//            	_window.refreshBookmarks();
             	logger.info("load Completed: " + _browser.getUrl());
             	_window.setStatus("加载结束");
 			}

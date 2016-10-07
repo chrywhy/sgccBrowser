@@ -23,6 +23,8 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
@@ -56,6 +58,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.chry.browser.mainframe.BookMark.Type;
 import com.chry.browser.safe.LoginDialog;
 import com.chry.browser.safe.SafeGate;
 import com.chry.util.FileUtil;
@@ -570,17 +573,9 @@ public class BrowserWindow {
     
     private ToolItem _renderBookMark(BookMark bookmark) {
         final ToolItem book = new ToolItem(_bookBar, SWT.NONE);
-        String title = bookmark.name;
-        if (title.length() > 10) {
-            title = title.substring(0,10);
-        }
-        book.setImage(bookmark.getIcon());
-        book.setText(title);
         if (bookmark.type==BookMark.Type.folder) {
         	_attachFolderMenu(book, _menuFolders.get(bookmark.name));
         } else {
-            book.setToolTipText(title + "\n" + bookmark.url);
-            book.setData("url", bookmark.url);
             book.addSelectionListener(new SelectionListener() {
 
 				@Override
@@ -591,15 +586,37 @@ public class BrowserWindow {
 
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
-	            	_window._activePage.load((String)book.getData("url"));
+					BookMark bookmark = (BookMark)book.getData();
+	            	_window._activePage.load(bookmark.url);
 				}
             });
         }
+        book.setData(bookmark);
+        _refreshBookmark(book);
         return book;
     }
     
     private void _initBookEvents() {
         
+    }
+    
+    private void _refreshBookmark(ToolItem bookItem) {
+    	BookMark bookmark = (BookMark)bookItem.getData();
+    	bookItem.setImage(bookmark.getIcon());
+        String title = bookmark.name;
+        if (title.length() > 10) {
+            title = title.substring(0,10);
+        }
+    	bookItem.setText(title);
+    	if (bookmark.type == BookMark.Type.url) {
+    		bookItem.setToolTipText(bookmark.name + "\n" + bookmark.url);
+    	}
+    }
+    
+    public void refreshBookmarks() {
+    	for (ToolItem bookItem : _bookBar.getItems()) {
+    		_refreshBookmark(bookItem);
+    	}
     }
     
     private void _initCenterArea() {
@@ -609,10 +626,32 @@ public class BrowserWindow {
         for (BookMark bookmark : BookMark.bookMarks) {
         	if (bookmark.type == BookMark.Type.folder) {
             	Menu menu = new Menu(_shell, SWT.POP_UP);
+            	_addMenuInfo(menu);
                 _createFolderMenu(menu, bookmark.children);
         		_menuFolders.put(bookmark.name, menu);
         	}
         }
+    }
+    
+    private static void _addMenuInfo(final Menu menu) {
+        menu.addMenuListener(new MenuListener() {
+			@Override
+			public void menuHidden(MenuEvent arg0) {
+				// TODO Auto-generated method stub
+			}
+			@Override
+			public void menuShown(MenuEvent arg0) {
+		        for (MenuItem item : menu.getItems()) {
+		        	BookMark bookmark = (BookMark)item.getData();
+		        	item.setText(bookmark.name);
+		        	item.setImage(bookmark.getIcon());
+		        	if (bookmark.type == Type.url) {
+		        		item.setToolTipText(bookmark.name + "\n" + bookmark.url);
+		        	}
+		        }
+			}
+        	
+        });
     }
     
     private Menu _attachFolderMenu(final ToolItem folderItem, final Menu menu) {
@@ -634,13 +673,12 @@ public class BrowserWindow {
     	if (bookmark.type == BookMark.Type.folder) {
     		subItem = new MenuItem(menu, SWT.CASCADE);
     		Menu subMenu = new Menu(subItem);
+            _addMenuInfo(subMenu);
     		subItem.setMenu(subMenu);
     		List<BookMark> children = bookmark.children;
 			_createFolderMenu(subMenu, children);
     	} else {
     		subItem = new MenuItem(menu, SWT.NONE);
-            subItem.setToolTipText(bookmark.name + "\n" + bookmark.url);
-            subItem.setData("url", bookmark.url);
             subItem.addSelectionListener(new SelectionListener() {
 				@Override
 				public void widgetDefaultSelected(SelectionEvent arg0) {
@@ -649,12 +687,12 @@ public class BrowserWindow {
 
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
-					_window._activePage.load((String)subItem.getData("url"));
+					BookMark bookmark = (BookMark)subItem.getData();
+					_window._activePage.load(bookmark.url);
 				}                	
             });
     	}
-        subItem.setText(bookmark.name);
-        subItem.setImage(bookmark.getIcon());
+        subItem.setData(bookmark);
     }
     
     private Menu _createFolderMenu(Menu menu, List<BookMark> bookmarks) {
@@ -689,11 +727,11 @@ public class BrowserWindow {
 	                moreItem.setToolTipText("更多书签");
 	                _bookBarWidth += moreItem.getBounds().width;
 	                moreMenu = new Menu(_shell, SWT.POP_UP);
+	                _addMenuInfo(moreMenu);
 	                _attachFolderMenu(moreItem, moreMenu);
 	                continue;
 	            }
 	            _bookBarWidth = width;
-	            _lastShownBookmark = bookmark;
         	} else if (moreMenu != null) {
     			_addBookmarkToMenu(moreMenu, bookmark);
         	} else {
