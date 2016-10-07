@@ -689,7 +689,6 @@ public class BrowserWindow {
 	                moreItem.setToolTipText("更多书签");
 	                _bookBarWidth += moreItem.getBounds().width;
 	                moreMenu = new Menu(_shell, SWT.POP_UP);
-	                _addBookmarkToMenu(moreMenu, bookmark);
 	                _attachFolderMenu(moreItem, moreMenu);
 	                continue;
 	            }
