@@ -567,6 +567,14 @@ public class BrowserWindow {
             public void handleEvent(Event e) {
                 String sUrl = _activePage.getUrl();
                 String title = _activePage.getText();
+                
+                AddBookItemDialog addBookItemDialog = new AddBookItemDialog(_window, title, sUrl);
+                Rectangle rect = _btnBook.getBounds();
+                Point pt = new Point(rect.x, rect.y + rect.height);
+                pt = _menuBar.toDisplay(pt);
+                addBookItemDialog.setLocation(pt.x - 300, pt.y);
+                
+                addBookItemDialog.open();
             }            
         });            
     }
@@ -674,6 +682,7 @@ public class BrowserWindow {
     		subItem = new MenuItem(menu, SWT.CASCADE);
     		Menu subMenu = new Menu(subItem);
             _addMenuInfo(subMenu);
+    		_menuFolders.put(bookmark.name, subMenu);
     		subItem.setMenu(subMenu);
     		List<BookMark> children = bookmark.children;
 			_createFolderMenu(subMenu, children);
@@ -1097,5 +1106,14 @@ public class BrowserWindow {
             _itemAdminSite.setEnabled(false);
             _itemAdminUser.setEnabled(false);            
         }
+    }
+    
+    public void addNewBookmark(String folderName, BookMark newBookmark) {
+    	Menu menu = _menuFolders.get(folderName);
+    	if (menu == null) {
+    		
+    	} else {
+    		
+    	}
     }
 }

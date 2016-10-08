@@ -7,16 +7,12 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.chry.browser.mainframe.BrowserConfig;
 import com.chry.browser.mainframe.BrowserWindow;
-import com.chry.browser.mainframe.WebPage;
 import com.chry.util.http.SyncHttpClient;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.eclipse.swt.widgets.Text;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 

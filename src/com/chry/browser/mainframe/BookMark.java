@@ -1,5 +1,6 @@
 package com.chry.browser.mainframe;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,7 +16,9 @@ import com.chry.util.FileUtil;
 public class BookMark {
 	static Logger logger = LogManager.getLogger(BookMark.class.getName());
 	public static List<BookMark> bookMarks = new LinkedList<BookMark>();
-
+	public static List<String> bookFolderNames = new ArrayList<String>();
+	public static List<BookMark> bookFolders = new ArrayList<BookMark>();
+	
 	public static enum Type {url, folder;
 		public static Type String2Type(String type) {
 			if ("url".equals(type)) {
@@ -49,7 +52,7 @@ public class BookMark {
     	}
     	children = null;
     }
-    
+        
 	private static List<BookMark> load(JSONArray roots){
 		List<BookMark> bookmarks = new LinkedList<BookMark>();
 		if (roots != null) {
@@ -75,6 +78,8 @@ public class BookMark {
 						JSONArray children = oJson.getJSONArray(CHILDREN);
 						List<BookMark> folders = load(children);
 						bookmark.children = folders;
+						bookFolders.add(bookmark);
+						bookFolderNames.add(bookmark.name);
 					}
 					bookmarks.add(bookmark);
 				} catch (Exception e) {
@@ -92,6 +97,8 @@ public class BookMark {
 			JSONObject roots = json.getJSONObject(ROOTS);
 			JSONObject bookmark_bar = roots.getJSONObject("bookmark_bar");
 			JSONArray children = bookmark_bar.getJSONArray(CHILDREN);
+			bookFolderNames.add("书签栏");
+			bookFolders.add(null);
 			bookMarks = load(children);
 		} catch(Exception e) {
 			logger.warn("can not load BookMark !", e);
