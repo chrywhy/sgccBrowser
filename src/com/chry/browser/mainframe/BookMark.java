@@ -110,14 +110,14 @@ public class BookMark {
 		for (BookMark bookmark : booksmarks) {
 	    	JSONObject oJson = new JSONObject();
 			try {
-				oJson.append(NAME, bookmark.name);
+				oJson.put(NAME, bookmark.name);
 				if (bookmark.type == Type.url) {
-					oJson.append(TYPE, Type.url.name());
-					oJson.append(URL, bookmark.url);
+					oJson.put(TYPE, "url");
+					oJson.put(URL, bookmark.url);
 				} else {
-					oJson.append(TYPE, Type.folder.name());
+					oJson.put(TYPE, "folder");
 					JSONArray aJsonChildren = toJsonArray(bookmark.children);
-					oJson.append(CHILDREN, aJsonChildren);
+					oJson.put(CHILDREN, aJsonChildren);
 				}
 				aJson.put(oJson);
 			} catch (JSONException e) {
@@ -140,7 +140,12 @@ public class BookMark {
     public static JSONObject toJson() {
     	JSONObject json = new JSONObject();
 		try {
-	    	json.put(ROOTS, toJsonArray(bookMarks));
+	    	JSONObject roots = new JSONObject();
+	    	json.put(ROOTS, roots);
+	    	JSONObject bookmark_bar = new JSONObject();
+	    	roots.put("bookmark_bar", bookmark_bar);
+	    	JSONArray children = toJsonArray(bookMarks);
+	    	bookmark_bar.put(CHILDREN, children);
 	    	json.put(VERSION, "1.0");
 		} catch (JSONException e) {
 			logger.warn("Can not conver bookemark to Json", e);

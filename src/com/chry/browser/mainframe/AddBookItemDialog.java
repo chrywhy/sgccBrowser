@@ -96,6 +96,7 @@ public class AddBookItemDialog extends Dialog {
 				} else {
 					_window.addNewBookmark("", newBookmark);
 				}
+		    	BookMark.save();
 				_shell.dispose();
 			}
 		});

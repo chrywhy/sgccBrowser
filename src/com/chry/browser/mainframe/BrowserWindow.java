@@ -117,6 +117,8 @@ public class BrowserWindow {
     private Composite _southArea;
 //    private ProgressBar _progressBar;
     private Label _labelStatus;
+    private boolean _isBookBarFull = false;
+    private Menu _moreMenu = null;
 
     int newPageHashCode;
     
@@ -711,6 +713,32 @@ public class BrowserWindow {
         return menu;
     }
 
+    private void _addBookmarkToBar(BookMark bookmark) {
+        int maxWidth = _shell.getBounds().width - 100;
+    	ToolItem moreItem = null;
+    	if (!_isBookBarFull) {
+            ToolItem bookItem = _renderBookMark(bookmark);
+            Rectangle rect = bookItem.getBounds();
+            int width = _bookBarWidth + rect.width;
+            if(width >= maxWidth) {
+            	_isBookBarFull = true;
+                bookItem.dispose();
+                moreItem = new ToolItem(_bookBar, SWT.NONE);
+                moreItem.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/more.png"));
+                moreItem.setToolTipText("更多书签");
+                _bookBarWidth += moreItem.getBounds().width;
+                _moreMenu = new Menu(_shell, SWT.POP_UP);
+                _addMenuInfo(_moreMenu);
+                _attachFolderMenu(moreItem, _moreMenu);
+            } else {
+            	_bookBarWidth = width;
+            }
+    	} 
+    	if (_moreMenu != null) {
+			_addBookmarkToMenu(_moreMenu, bookmark);
+    	}
+    }
+    
     private void _initBookArea() {
         _bookBar = new ToolBar(_centerArea, SWT.FLAT | SWT.RIGHT);
         _bookBar.setLayoutData(BorderLayout.NORTH);
@@ -719,33 +747,10 @@ public class BrowserWindow {
         booksItem.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/books.png"));
         booksItem.setToolTipText("收藏夹管理");
         _bookBarWidth = 0;
-        int maxWidth = _shell.getBounds().width - 100;
-        boolean isFull = false;
-        Menu moreMenu = null;
-    	ToolItem moreItem = null;
+        _isBookBarFull = false;
+        _moreMenu = null;
         for (BookMark bookmark : BookMark.bookMarks) {
-        	if (!isFull) {
-	            ToolItem bookItem = _renderBookMark(bookmark);
-	            Rectangle rect = bookItem.getBounds();
-	            int width = _bookBarWidth + rect.width;
-	            if(width >= maxWidth) {
-	                isFull = true;
-	                bookItem.dispose();
-	                moreItem = new ToolItem(_bookBar, SWT.NONE);
-	                moreItem.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/more.png"));
-	                moreItem.setToolTipText("更多书签");
-	                _bookBarWidth += moreItem.getBounds().width;
-	                moreMenu = new Menu(_shell, SWT.POP_UP);
-	                _addMenuInfo(moreMenu);
-	                _attachFolderMenu(moreItem, moreMenu);
-	                continue;
-	            }
-	            _bookBarWidth = width;
-        	} else if (moreMenu != null) {
-    			_addBookmarkToMenu(moreMenu, bookmark);
-        	} else {
-        		logger.error("Unknown error : more Menu is NULL !");
-        	}
+        	_addBookmarkToBar(bookmark);
         }
     }
     
@@ -1111,9 +1116,9 @@ public class BrowserWindow {
     public void addNewBookmark(String folderName, BookMark newBookmark) {
     	Menu menu = _menuFolders.get(folderName);
     	if (menu == null) {
-    		
+    		_addBookmarkToBar(newBookmark);
     	} else {
-    		
+    		_addBookmarkToMenu(menu, newBookmark);
     	}
     }
 }
