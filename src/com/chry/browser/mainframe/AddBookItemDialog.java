@@ -94,6 +94,7 @@ public class AddBookItemDialog extends Dialog {
 					bookFolder.children.add(newBookmark);
 					_window.addNewBookmark(bookFolder.name, newBookmark);
 				} else {
+					BookMark.bookMarks.add(newBookmark);
 					_window.addNewBookmark("", newBookmark);
 				}
 		    	BookMark.save();

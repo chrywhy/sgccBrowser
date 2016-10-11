@@ -55,7 +55,7 @@ public class BrowserConfig {
 	public static String ROOT = System.getProperty("user.home");
 	public static String FavoritePath = ROOT + File.separator + ".safeBrowserFavorite";
 	public static String FaviconPath = FavoritePath + File.separator + "favicons";
-	public static String BookPath = FavoritePath + File.separator + "bookmarks";
+	public static String BookFile = FavoritePath + File.separator + "bookmarks";
 	public static String HistoryFile = FavoritePath + File.separator + "history";
 	public static PropConf history;
 	static {
@@ -63,7 +63,6 @@ public class BrowserConfig {
 			FileUtil.createDirectory(FavoritePath);
 			FileUtil.hideDirectory(FavoritePath);
 			FileUtil.createDirectory(FaviconPath);
-			FileUtil.createDirectory(BookPath);
 			FileUtil.createFile(HistoryFile);
 			history = new PropConf(HistoryFile);
 		} catch (IOException e) {

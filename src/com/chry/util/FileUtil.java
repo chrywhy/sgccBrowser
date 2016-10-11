@@ -1,13 +1,18 @@
 package com.chry.util;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,22 +86,22 @@ public class FileUtil {
         }
     }
 
-    static public String readFileToString(String fileName) {
-        File file = new File(fileName);
-        FileReader fileReader = null;
-        String ret = null;
+    static public String readFileToString(String fileName) throws IOException {
+        String ret = "";
+        BufferedReader br = null;
         try {
-            fileReader = new FileReader(fileName);
-            int size = (int) file.length();
-            char[] buf = new char[size];
-            fileReader.read(buf, 0, size);
-            ret = new String(buf);
-            fileReader.close();
-        }
-        catch (IOException e) {
-            logger.error("Cannot read content from file", String.format(
-                             "file=%s, error=%s", fileName, e.getMessage()
-                             ));
+        	  br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"));  
+             String line = null;  
+             while( ( line = br.readLine() ) != null ) {
+            	 ret += line + "\n";
+             }
+        } finally {
+        	if (br != null) {
+        		try {
+					br.close();
+				} catch (IOException e) {
+				}
+        	}
         }
         return ret;
     }
@@ -160,16 +165,17 @@ public class FileUtil {
     	Runtime.getRuntime().exec(string);
     }
 
-    static public void WriteStringToFile(String s, String filePath) {
+    static public void WriteStringToFile(String s, String filePath) throws IOException {
     	PrintStream ps = null;
         try {
             File file = new File(filePath);
-            if (file.exists()) {
+            if (!file.exists()) {
+                file.createNewFile();
             }
-        	ps = new PrintStream(new FileOutputStream(file));
-        	ps.println(s);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            OutputStreamWriter write = new OutputStreamWriter(new FileOutputStream(file),"UTF-8");
+            BufferedWriter writer = new BufferedWriter(write);   
+            writer.write(s);
+            writer.close();
         } finally {
         	if (ps != null) {
         		ps.close();

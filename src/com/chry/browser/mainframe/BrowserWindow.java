@@ -58,6 +58,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+//import com.chry.browser.bookmark.display.JExplorer;
 import com.chry.browser.mainframe.BookMark.Type;
 import com.chry.browser.safe.LoginDialog;
 import com.chry.browser.safe.SafeGate;
@@ -746,6 +747,18 @@ public class BrowserWindow {
         booksItem.setText("收藏夹");
         booksItem.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/books.png"));
         booksItem.setToolTipText("收藏夹管理");
+        booksItem.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+//				JExplorer.launch();
+			}
+        	
+        });
         _bookBarWidth = 0;
         _isBookBarFull = false;
         _moreMenu = null;

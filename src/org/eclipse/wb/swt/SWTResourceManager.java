@@ -453,7 +453,7 @@ public class SWTResourceManager {
 		InputStream is = null;
 		try {
 			is =clazz.getResourceAsStream(path);
-	        BufferedReader br=new BufferedReader(new InputStreamReader(is));
+	        BufferedReader br=new BufferedReader(new InputStreamReader(is, "UTF-8"));
 	        
 	        String s="";  
 	        while((s=br.readLine())!=null) {  

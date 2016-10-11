@@ -1,5 +1,6 @@
 package com.chry.browser.mainframe;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.wb.swt.SWTResourceManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,7 +94,12 @@ public class BookMark {
 	
 	public static void load(){
 		try {
-			String jsonStr = FileUtil.readFileToString(BrowserConfig.BookPath);
+			String jsonStr = null;
+			try {
+				jsonStr = FileUtil.readFileToString(BrowserConfig.BookFile);
+			} catch (FileNotFoundException e) {
+				jsonStr = SWTResourceManager.loadFile(BookMark.class, "/com/chry/browser/resource/defaultBookmarks");
+			}
 			JSONObject json = new JSONObject(jsonStr);
 			JSONObject roots = json.getJSONObject(ROOTS);
 			JSONObject bookmark_bar = roots.getJSONObject("bookmark_bar");
@@ -101,7 +108,7 @@ public class BookMark {
 			bookFolders.add(null);
 			bookMarks = load(children);
 		} catch(Exception e) {
-			logger.warn("can not load BookMark !", e);
+			logger.warn("can not load BookMark !",e);
 		}
 	}
 
@@ -156,8 +163,11 @@ public class BookMark {
     public static void save() {
     	try {
 			String bookmarks = toJson().toString(2);
-			FileUtil.WriteStringToFile(bookmarks, BrowserConfig.BookPath);
-		} catch (JSONException e) {
+			if (!FileUtil.exists(BrowserConfig.BookFile)) {
+				FileUtil.createFile(BrowserConfig.BookFile);
+			}
+			FileUtil.WriteStringToFile(bookmarks, BrowserConfig.BookFile);
+		} catch (Exception e) {
 			logger.error("Failed to save bookmarks!", e);
 		}
     }
