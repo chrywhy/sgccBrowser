@@ -8,7 +8,7 @@
  * Contributors:
  *    Google, Inc. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.wb.swt;
+package com.chry.util.swt;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

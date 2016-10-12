@@ -1,4 +1,4 @@
-package com.chry.browser.mainframe;
+package com.chry.browser;
 
 import java.net.URL;
 import java.text.MessageFormat;
@@ -17,6 +17,10 @@ import org.eclipse.jface.fieldassist.TextContentAdapter;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderEvent;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.FocusEvent;
@@ -40,10 +44,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolder2Adapter;
-import org.eclipse.swt.custom.CTabFolderEvent;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -56,15 +56,18 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.wb.swt.SWTResourceManager;
 
-//import com.chry.browser.bookmark.display.JExplorer;
-import com.chry.browser.mainframe.BookMark.Type;
+import com.chry.browser.bookmark.AddBookItemDialog;
+import com.chry.browser.bookmark.BookMark;
+import com.chry.browser.bookmark.BookMark.Type;
+import com.chry.browser.config.BrowserConfig;
+import com.chry.browser.config.ImageConfig;
+import com.chry.browser.page.BookPage;
+import com.chry.browser.page.WebPage;
 import com.chry.browser.safe.LoginDialog;
 import com.chry.browser.safe.SafeGate;
-import com.chry.util.FileUtil;
-
-import swing2swt.layout.BorderLayout;
+import com.chry.util.swt.SWTResourceManager;
+import com.chry.util.swt.layout.BorderLayout;
 
 public class BrowserWindow {    
     static Logger logger = LogManager.getLogger(BrowserWindow.class.getName());
@@ -104,7 +107,6 @@ public class BrowserWindow {
     private MenuItem _mIE6;
     private MenuItem _mFireFox;
 
-    private BookMark _lastShownBookmark;
     int _bookBarWidth;
     private Map<String, Menu> _menuFolders = new HashMap<String, Menu>();
     
@@ -584,8 +586,8 @@ public class BrowserWindow {
     
     private ToolItem _renderBookMark(BookMark bookmark) {
         final ToolItem book = new ToolItem(_bookBar, SWT.NONE);
-        if (bookmark.type==BookMark.Type.folder) {
-        	_attachFolderMenu(book, _menuFolders.get(bookmark.name));
+        if (bookmark.isFolder()) {
+        	_attachFolderMenu(book, _menuFolders.get(bookmark.getName()));
         } else {
             book.addSelectionListener(new SelectionListener() {
 
@@ -598,7 +600,7 @@ public class BrowserWindow {
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
 					BookMark bookmark = (BookMark)book.getData();
-	            	_window._activePage.load(bookmark.url);
+	            	_window._activePage.load(bookmark.getUrl());
 				}
             });
         }
@@ -614,13 +616,13 @@ public class BrowserWindow {
     private void _refreshBookmark(ToolItem bookItem) {
     	BookMark bookmark = (BookMark)bookItem.getData();
     	bookItem.setImage(bookmark.getIcon());
-        String title = bookmark.name;
+        String title = bookmark.getName();
         if (title.length() > 10) {
             title = title.substring(0,10);
         }
     	bookItem.setText(title);
-    	if (bookmark.type == BookMark.Type.url) {
-    		bookItem.setToolTipText(bookmark.name + "\n" + bookmark.url);
+    	if (bookmark.isUrl()) {
+    		bookItem.setToolTipText(bookmark.getName() + "\n" + bookmark.getUrl());
     	}
     }
     
@@ -634,12 +636,12 @@ public class BrowserWindow {
         _centerArea = new Composite(_shell, SWT.NONE);
         _centerArea.setLayoutData(BorderLayout.CENTER);
         _centerArea.setLayout(new BorderLayout(0, 0));
-        for (BookMark bookmark : BookMark.bookMarks) {
-        	if (bookmark.type == BookMark.Type.folder) {
+        for (BookMark bookmark : BookMark.getBooksOnBar()) {
+        	if (bookmark.isFolder()) {
             	Menu menu = new Menu(_shell, SWT.POP_UP);
             	_addMenuInfo(menu);
-                _createFolderMenu(menu, bookmark.children);
-        		_menuFolders.put(bookmark.name, menu);
+                _createFolderMenu(menu, bookmark.getChildren());
+        		_menuFolders.put(bookmark.getName(), menu);
         	}
         }
     }
@@ -654,10 +656,10 @@ public class BrowserWindow {
 			public void menuShown(MenuEvent arg0) {
 		        for (MenuItem item : menu.getItems()) {
 		        	BookMark bookmark = (BookMark)item.getData();
-		        	item.setText(bookmark.name);
+		        	item.setText(bookmark.getName());
 		        	item.setImage(bookmark.getIcon());
-		        	if (bookmark.type == Type.url) {
-		        		item.setToolTipText(bookmark.name + "\n" + bookmark.url);
+		        	if (bookmark.isUrl()) {
+		        		item.setToolTipText(bookmark.getName() + "\n" + bookmark.getUrl());
 		        	}
 		        }
 			}
@@ -681,13 +683,13 @@ public class BrowserWindow {
     
     private void _addBookmarkToMenu(Menu menu, BookMark bookmark) {
     	final MenuItem subItem;
-    	if (bookmark.type == BookMark.Type.folder) {
+    	if (bookmark.isFolder()) {
     		subItem = new MenuItem(menu, SWT.CASCADE);
     		Menu subMenu = new Menu(subItem);
             _addMenuInfo(subMenu);
-    		_menuFolders.put(bookmark.name, subMenu);
+    		_menuFolders.put(bookmark.getName(), subMenu);
     		subItem.setMenu(subMenu);
-    		List<BookMark> children = bookmark.children;
+    		List<BookMark> children = bookmark.getChildren();
 			_createFolderMenu(subMenu, children);
     	} else {
     		subItem = new MenuItem(menu, SWT.NONE);
@@ -700,7 +702,7 @@ public class BrowserWindow {
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
 					BookMark bookmark = (BookMark)subItem.getData();
-					_window._activePage.load(bookmark.url);
+					_window._activePage.load(bookmark.getUrl());
 				}                	
             });
     	}
@@ -755,14 +757,14 @@ public class BrowserWindow {
 
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-//				JExplorer.launch();
+				createBookPage();
 			}
         	
         });
         _bookBarWidth = 0;
         _isBookBarFull = false;
         _moreMenu = null;
-        for (BookMark bookmark : BookMark.bookMarks) {
+        for (BookMark bookmark : BookMark.getBooksOnBar()) {
         	_addBookmarkToBar(bookmark);
         }
     }
@@ -902,11 +904,15 @@ public class BrowserWindow {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                WebPage webPage = (WebPage)e.item;
-                if (webPage.getType() != WebPage.Type.pageGenerator) {
-                    _activePage = (WebPage)e.item;
-                    _activePage.setCurUrl(_activePage.getUrl());
-                }
+            	if (e.item instanceof WebPage) {
+	                WebPage webPage = (WebPage)e.item;
+	                if (webPage.getType() != WebPage.Type.pageGenerator) {
+	                    _activePage = (WebPage)e.item;
+	                    _activePage.setCurUrl(_activePage.getUrl());
+	                }
+            	} else {
+            		
+            	}
             }
         });
         
@@ -1098,6 +1104,18 @@ public class BrowserWindow {
         return webPage;
     }
 
+    public BookPage createBookPage() {
+		BookPage bookPage = new BookPage(this);
+		bookPage.setText("书签管理");
+		bookPage.setImage(ImageConfig.getBookIcon());
+		_pageFolder.setSelection(bookPage);
+        if (_pageGenerator != null) {
+            _pageGenerator.dispose();
+        }
+        _pageGenerator = WebPage.createPageGenerator(this);
+		return bookPage;
+    }
+    
     public CTabFolder getPageFolder() {
         return _pageFolder;
     }
@@ -1132,6 +1150,17 @@ public class BrowserWindow {
     		_addBookmarkToBar(newBookmark);
     	} else {
     		_addBookmarkToMenu(menu, newBookmark);
+    	}
+    }
+    
+    public void updateBookBar(BookMark bookmark) {
+    	if (bookmark.getParent() == BookMark.getBarBook()) {
+    		ToolItem[] items = _bookBar.getItems();
+    		for (ToolItem item : items) {
+    			if ((BookMark)item.getData() == bookmark) {
+    				item.setText(bookmark.getName());
+    			}
+    		}
     	}
     }
 }

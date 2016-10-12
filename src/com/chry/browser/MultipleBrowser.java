@@ -1,7 +1,9 @@
-package com.chry.browser.mainframe;
+package com.chry.browser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.chry.browser.config.BrowserConfig;
 
 public class MultipleBrowser {
 	private MultipleBrowser() {}

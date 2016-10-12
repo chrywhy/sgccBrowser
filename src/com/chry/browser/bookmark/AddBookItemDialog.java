@@ -1,11 +1,14 @@
-package com.chry.browser.mainframe;
+package com.chry.browser.bookmark;
 
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.SWT;
-import org.eclipse.wb.swt.SWTResourceManager;
+
+import com.chry.browser.BrowserWindow;
+import com.chry.util.swt.SWTResourceManager;
+
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Button;
@@ -91,10 +94,10 @@ public class AddBookItemDialog extends Dialog {
 				BookMark newBookmark = new BookMark(BookMark.Type.url, bookname.getText(), _sUrl);
 				if (index > 0) {
 					BookMark bookFolder = BookMark.bookFolders.get(index);
-					bookFolder.children.add(newBookmark);
-					_window.addNewBookmark(bookFolder.name, newBookmark);
+					bookFolder.addChild(newBookmark);
+					_window.addNewBookmark(bookFolder.getName(), newBookmark);
 				} else {
-					BookMark.bookMarks.add(newBookmark);
+					BookMark.getBooksOnBar().add(newBookmark);
 					_window.addNewBookmark("", newBookmark);
 				}
 		    	BookMark.save();

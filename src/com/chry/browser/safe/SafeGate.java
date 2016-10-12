@@ -1,6 +1,5 @@
 package com.chry.browser.safe;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -9,11 +8,9 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.chry.browser.mainframe.BrowserConfig;
+import com.chry.browser.config.BrowserConfig;
 import com.chry.util.DES;
 import com.chry.util.http.SyncHttpClient;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SafeGate {	

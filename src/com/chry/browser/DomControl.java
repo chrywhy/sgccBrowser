@@ -1,4 +1,4 @@
-package com.chry.browser.mainframe;
+package com.chry.browser;
 
 import org.eclipse.swt.browser.Browser;  
 import org.eclipse.swt.browser.BrowserFunction;  

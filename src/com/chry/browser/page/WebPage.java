@@ -1,10 +1,8 @@
-package com.chry.browser.mainframe;
+package com.chry.browser.page;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,21 +23,21 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.chry.browser.BrowserWindow;
+import com.chry.browser.DomControl;
+import com.chry.browser.config.BrowserConfig;
+import com.chry.browser.config.ImageConfig;
 import com.chry.browser.safe.SafeGate;
 import com.chry.browser.safe.Site;
-import com.chry.util.FileUtil;
+import com.chry.util.http.AsyncHttpClient;
 import com.chry.util.http.HttpException;
 import com.chry.util.http.IHttpLoadProgressListener;
 import com.chry.util.http.LoadEvent;
-import com.chry.util.http.AsyncHttpClient;
+import com.chry.util.swt.SWTResourceManager;
 
 public class WebPage extends CTabItem {
 	static Logger logger = LogManager.getLogger(WebPage.class.getName());
@@ -100,7 +98,7 @@ public class WebPage extends CTabItem {
 				}
 				Display.getDefault().syncExec(new Runnable() {
 				    public void run() {
-				    	Image image = BrowserConfig.getIcon(sUrl);
+				    	Image image = ImageConfig.getIcon(sUrl);
 						setImage(image);
 				    }
 				}); 
@@ -358,7 +356,7 @@ public class WebPage extends CTabItem {
 			} catch (MalformedURLException e) {
 				throw new HttpException(e);
 			}
-			String path = BrowserConfig.getIconPath(url);
+			String path = ImageConfig.getIconPath(url);
 			if (path == null) {
 				path = BrowserConfig.FaviconPath + File.separator + host;
 				if (_httpClient == null) {

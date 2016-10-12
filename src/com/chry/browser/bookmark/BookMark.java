@@ -1,4 +1,4 @@
-package com.chry.browser.mainframe;
+package com.chry.browser.bookmark;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -8,16 +8,20 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.wb.swt.SWTResourceManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.chry.browser.config.BrowserConfig;
+import com.chry.browser.config.ImageConfig;
 import com.chry.util.FileUtil;
+import com.chry.util.swt.SWTResourceManager;
 
 public class BookMark {
 	static Logger logger = LogManager.getLogger(BookMark.class.getName());
-	public static List<BookMark> bookMarks = new LinkedList<BookMark>();
+	private static final BookMark rootBook = new BookMark(Type.folder, "", "") ;
+	private static final BookMark bookBar = new BookMark(Type.folder, "书签栏", "") ;
+	private static List<BookMark> _bookMarks = new LinkedList<BookMark>();
 	public static List<String> bookFolderNames = new ArrayList<String>();
 	public static List<BookMark> bookFolders = new ArrayList<BookMark>();
 	
@@ -40,21 +44,39 @@ public class BookMark {
 	public static String TYPE = "type";
 	public static String CHILDREN = "children";
 
-    String name;
-    String url;
-    Type type;
-    
-    List<BookMark> children = null;
+	private String _name;
+	private String _url;
+    private Type _type;    
+    private List<BookMark> _children = null;
+    private BookMark _parent = null;
             
     public BookMark(Type type, String name, String url) {
-    	this.name = name;
-    	this.type = type;
+    	this._name = name;
+    	this._type = type;
     	if (type == Type.url) {
-    		this.url = url;
+    		this._url = url;
     	}
-    	children = null;
+    	_children = null;
+    }
+     
+    public void addChildren(List<BookMark> children) {
+    	if (_children == null) {
+    		_children = new LinkedList<BookMark>();
+    	}
+    	this._children = children;
+    	for (BookMark child : children) {
+    		child._parent = this;
+    	}
     }
         
+    public void addChild(BookMark child) {
+    	if (_children == null) {
+    		_children = new LinkedList<BookMark>();
+    	}
+    	_children.add(child);
+		child._parent = this;
+    }
+    
 	private static List<BookMark> load(JSONArray roots){
 		List<BookMark> bookmarks = new LinkedList<BookMark>();
 		if (roots != null) {
@@ -77,11 +99,11 @@ public class BookMark {
 					}
 					BookMark bookmark = new BookMark(type, name, url); 
 					if (type == Type.folder) {
-						JSONArray children = oJson.getJSONArray(CHILDREN);
-						List<BookMark> folders = load(children);
-						bookmark.children = folders;
+						JSONArray jChildren = oJson.getJSONArray(CHILDREN);
+						List<BookMark> children = load(jChildren);
+						bookmark.addChildren(children);
 						bookFolders.add(bookmark);
-						bookFolderNames.add(bookmark.name);
+						bookFolderNames.add(bookmark._name);
 					}
 					bookmarks.add(bookmark);
 				} catch (Exception e) {
@@ -90,6 +112,46 @@ public class BookMark {
 			}
 		}
 		return bookmarks;
+	}
+	
+	public boolean isFolder() {
+		return _type == Type.folder;
+	}
+	
+	public boolean isUrl() {
+		return _type == Type.url;
+	}
+	
+	public String getName() {
+		return this._name;
+	}
+	
+	public void setName(String name) {
+		_name = name;
+	}
+	
+	public String getUrl() {
+		return this._url;
+	}
+	
+	public List<BookMark> getChildren() {
+		return this._children;
+	}
+
+	public BookMark getParent() {
+		return this._parent;
+	}
+		
+	public static List<BookMark> getBooksOnBar() {
+		return bookBar._children;
+	}
+	
+	public static BookMark getRootBook() {
+		return rootBook;
+	}
+	
+	public static BookMark getBarBook() {
+		return bookBar;
 	}
 	
 	public static void load(){
@@ -105,8 +167,10 @@ public class BookMark {
 			JSONObject bookmark_bar = roots.getJSONObject("bookmark_bar");
 			JSONArray children = bookmark_bar.getJSONArray(CHILDREN);
 			bookFolderNames.add("书签栏");
-			bookFolders.add(null);
-			bookMarks = load(children);
+			bookFolders.add(rootBook);
+			_bookMarks = load(children);
+			bookBar.addChildren(_bookMarks);
+			rootBook.addChild(bookBar);
 		} catch(Exception e) {
 			logger.warn("can not load BookMark !",e);
 		}
@@ -117,13 +181,13 @@ public class BookMark {
 		for (BookMark bookmark : booksmarks) {
 	    	JSONObject oJson = new JSONObject();
 			try {
-				oJson.put(NAME, bookmark.name);
-				if (bookmark.type == Type.url) {
+				oJson.put(NAME, bookmark._name);
+				if (bookmark._type == Type.url) {
 					oJson.put(TYPE, "url");
-					oJson.put(URL, bookmark.url);
+					oJson.put(URL, bookmark._url);
 				} else {
 					oJson.put(TYPE, "folder");
-					JSONArray aJsonChildren = toJsonArray(bookmark.children);
+					JSONArray aJsonChildren = toJsonArray(bookmark._children);
 					oJson.put(CHILDREN, aJsonChildren);
 				}
 				aJson.put(oJson);
@@ -136,10 +200,10 @@ public class BookMark {
 	
 	public Image getIcon() {
 		Image icon;
-		if (type == Type.url) {
-			icon = BrowserConfig.getIcon(url);
+		if (_type == Type.url) {
+			icon = ImageConfig.getIcon(_url);
 		} else {
-			icon = BrowserConfig.getFolderIcon();
+			icon = ImageConfig.getFolderIcon();
 		}
 		return icon;
 	}
@@ -151,7 +215,7 @@ public class BookMark {
 	    	json.put(ROOTS, roots);
 	    	JSONObject bookmark_bar = new JSONObject();
 	    	roots.put("bookmark_bar", bookmark_bar);
-	    	JSONArray children = toJsonArray(bookMarks);
+	    	JSONArray children = toJsonArray(_bookMarks);
 	    	bookmark_bar.put(CHILDREN, children);
 	    	json.put(VERSION, "1.0");
 		} catch (JSONException e) {

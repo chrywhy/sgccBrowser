@@ -1,0 +1,41 @@
+{
+    "roots": {
+		"bookmark_bar": {
+			"children": [
+				{
+				  "name": "百度",
+				  "type": "url",
+				  "url": "http://www.baidu.com/"
+				},
+				{
+				  "name": "谷歌",
+				  "type": "url",
+				  "url": "http://google.221199.com/"
+				},
+				{
+				  "name": "公司相关",
+				  "children": [
+    				  {
+    					  "name": "国家电网",
+    					  "type": "url",
+    					  "url": "http://www.sgcc.com.cn"
+    				  },
+    				  {
+    					  "name": "启明星",
+    					  "type": "url",
+    					  "url": "www.aostarit.com"
+    				  }
+                   ],
+				   "type": "folder"
+				},
+				{
+				  "name": "其它书签",
+				  "children": [
+				  ],
+				  "type": "folder"
+				}
+			]
+		}
+    },
+    "version": "1.0"
+}

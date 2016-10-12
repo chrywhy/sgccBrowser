@@ -1,4 +1,4 @@
-package com.chry.browser.mainframe;
+package com.chry.browser.config;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -16,11 +16,12 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.chry.browser.bookmark.BookMark;
 import com.chry.browser.safe.SafeGate;
 import com.chry.util.FileUtil;
 import com.chry.util.PropConf;
+import com.chry.util.swt.SWTResourceManager;
 
 public class BrowserConfig {
 	static Logger logger = LogManager.getLogger(BrowserConfig.class.getName());
@@ -92,55 +93,6 @@ public class BrowserConfig {
 		}
 		SafeGate.loadSafePolicy();
 		BookMark.load();
-	}
-
-    public static Image getIcon(String sUrl) {
-    	String iconPath;
-    	if (sUrl == null || sUrl.trim().isEmpty()) {
-    		iconPath = null;
-    	} else {
-    		iconPath = getIconPath(sUrl);
-    	}
-    	if (iconPath != null) {
-	    	try {
-		    	ImageLoader loader = new ImageLoader();
-		    	ImageData[] imageData = loader.load(iconPath);
-		    	Image image = null;
-		    	if(imageData.length > 0){
-		    		image = new Image(null, imageData[0].scaledTo(16, 16));
-		    	}
-		    	return image;
-	    	} catch (Exception e) {
-	    		logger.error("Invalid icon file : " + iconPath, e);
-	    		FileUtil.deleteFile(iconPath);
-	    	}
-    	}
-    	return SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/page.png");
-    }
-    
-    public static Image getFolderIcon() {
-    	return SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/folder.png");
-    }
-    
-	public static String getIconPath(String sUrl) {
-    	try {
-        	URL url;
-			url = new URL(sUrl);
-			return getIconPath(url);
-		} catch (MalformedURLException e) {
-			logger.error("failed to set icon", e);
-			return null;
-		}
-	}
-	
-	public static String getIconPath(URL url) {
-		String host = url.getHost();
-		String path = FaviconPath + File.separator + host + File.separator + "favicon.ico";
-		if (FileUtil.exists(path)) {
-    		return path;
-    	} else {
-    		return null;
-    	}
 	}
 	
 	public static void addNewSite(String host) {
