@@ -632,16 +632,20 @@ public class BrowserWindow {
     	}
     }
     
+    private void _mapBookFolderToMenu(BookMark bookmark) {
+    	Menu menu = new Menu(_shell, SWT.POP_UP);
+    	_addMenuInfo(menu);
+        _createFolderMenu(menu, bookmark.getChildren());
+		_menuFolders.put(bookmark.getName(), menu);
+    }
+    
     private void _initCenterArea() {
         _centerArea = new Composite(_shell, SWT.NONE);
         _centerArea.setLayoutData(BorderLayout.CENTER);
         _centerArea.setLayout(new BorderLayout(0, 0));
         for (BookMark bookmark : BookMark.getBooksOnBar()) {
         	if (bookmark.isFolder()) {
-            	Menu menu = new Menu(_shell, SWT.POP_UP);
-            	_addMenuInfo(menu);
-                _createFolderMenu(menu, bookmark.getChildren());
-        		_menuFolders.put(bookmark.getName(), menu);
+        		_mapBookFolderToMenu(bookmark);
         	}
         }
     }
@@ -1161,6 +1165,29 @@ public class BrowserWindow {
     				item.setText(bookmark.getName());
     			}
     		}
+    	}
+    }
+
+    public void removeBookBar(BookMark bookmark) {
+    	if (bookmark.getParent() == BookMark.getBarBook()) {
+    		ToolItem[] items = _bookBar.getItems();
+    		for (ToolItem item : items) {
+    			if ((BookMark)item.getData() == bookmark) {
+    				item.dispose();
+    			}
+    		}
+    	}
+    }
+
+    public void addBookFolder(BookMark parentFolder, BookMark bookFolder) {
+    	if (bookFolder.isFolder()) {
+    		_mapBookFolderToMenu(bookFolder);
+        	if (parentFolder == BookMark.getBarBook()) {
+        		_addBookmarkToBar(bookFolder);
+        	} else {
+            	Menu menu = _menuFolders.get(parentFolder);
+        		_addBookmarkToMenu(menu, bookFolder);
+        	}
     	}
     }
 }

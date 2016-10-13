@@ -24,27 +24,21 @@ public class CutAction extends Action
 //		setImageDescriptor( ImageDescriptor.createFromURL( JExplorerUtil.newURL( "file:icons/cut.gif" ) ) );
 	}
 
-	public void run()
-	{
+	public void run() {
 		//TODO implements the function of cut
 		Clipboard clipboard = SwtUtil.getClipboard();
 		TextTransfer text_transfer = TextTransfer.getInstance();
 
 		IStructuredSelection selection = _bookPage.getTableSelection();
-		if( selection.isEmpty() )
-		{
+		if(selection.isEmpty()){
 			return;
 		}
 		StringBuffer string_buffer = new StringBuffer();
-		for( Iterator i = selection.iterator(); i.hasNext(); )
-		{
+		for( Iterator i = selection.iterator(); i.hasNext(); ) {
 			File file = ( File ) i.next();
-			if( string_buffer.length() == 0 )
-			{
+			if( string_buffer.length() == 0 ) {
 				string_buffer.append( file.getAbsolutePath() );
-			}
-			else
-			{
+			} else {
 				string_buffer.append( BookPageConstant.FILE_COPY_SEPARATOR );
 				string_buffer.append( file.getAbsolutePath() );
 			}

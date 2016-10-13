@@ -244,7 +244,18 @@ public class BookPage  extends CTabItem {
 	public void refresh(BookMark bookmark){
 		tbv.refresh();
 		tv.refresh();
+	}
+
+	public void updateBookBar(BookMark bookmark) {
 		_window.updateBookBar(bookmark);
+	}
+	
+	public void removeBookBar(BookMark bookmark) {
+		_window.removeBookBar(bookmark);
+	}
+	
+	public void addBookFolder(BookMark parentFolder, BookMark bookfolder) {
+		_window.addBookFolder(parentFolder, bookfolder);
 	}
 	
 	public void openFolder(BookMark folder) {
@@ -275,11 +286,6 @@ public class BookPage  extends CTabItem {
 	public void doFilter()
 	{
 		doFileter( "", "" );
-	}
-
-	public File getCurrentRoot()
-	{
-		return new File( "C:\\" );
 	}
 
 	public boolean isCut()

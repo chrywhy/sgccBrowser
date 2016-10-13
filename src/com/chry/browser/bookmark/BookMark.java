@@ -56,13 +56,10 @@ public class BookMark {
     	if (type == Type.url) {
     		this._url = url;
     	}
-    	_children = null;
+    	_children = new LinkedList<BookMark>();
     }
      
     public void addChildren(List<BookMark> children) {
-    	if (_children == null) {
-    		_children = new LinkedList<BookMark>();
-    	}
     	this._children = children;
     	for (BookMark child : children) {
     		child._parent = this;
@@ -70,11 +67,20 @@ public class BookMark {
     }
         
     public void addChild(BookMark child) {
-    	if (_children == null) {
-    		_children = new LinkedList<BookMark>();
-    	}
     	_children.add(child);
 		child._parent = this;
+    	if (child.isFolder()) {
+    		bookFolderNames.add(child.getName());
+    		bookFolders.add(child);
+    	}
+    }
+    
+    public boolean removeChild(BookMark child) {
+    	if (child.isFolder()) {
+    		bookFolderNames.remove(child.getName());
+    		bookFolders.remove(child);
+    	}
+    	return _children.remove(child);
     }
     
 	private static List<BookMark> load(JSONArray roots){
@@ -152,6 +158,15 @@ public class BookMark {
 	
 	public static BookMark getBarBook() {
 		return bookBar;
+	}
+	
+	public boolean hasChild(String name) {
+		for (BookMark bookmark : _children) {
+			if (bookmark.getName().equalsIgnoreCase(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static void load(){

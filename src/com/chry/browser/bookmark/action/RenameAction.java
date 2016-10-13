@@ -42,7 +42,9 @@ public class RenameAction extends Action {
 			String newName = inputDlg.getValue();
 			// TODO need check name duplicated and rename failed
 			selectedItem.setName(newName);
-			_bookPage.refresh(selectedItem);
+			_bookPage.updateBookBar(selectedItem);
+			_bookPage.refresh();
+			BookMark.save();
 		}
 
 	}
