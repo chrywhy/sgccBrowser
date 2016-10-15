@@ -7,7 +7,9 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.MessageBox;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +26,8 @@ public class BookMark {
 	private static List<BookMark> _bookMarks = new LinkedList<BookMark>();
 	public static List<String> bookFolderNames = new ArrayList<String>();
 	public static List<BookMark> bookFolders = new ArrayList<BookMark>();
+	
+	private static List<BookMark> _clipBookmars = new LinkedList<BookMark>();
 	
 	public static enum Type {url, folder;
 		public static Type String2Type(String type) {
@@ -59,13 +63,60 @@ public class BookMark {
     	_children = new LinkedList<BookMark>();
     }
      
+	public static void addClipBookmars(BookMark bookmark){
+		_clipBookmars.add(bookmark);
+	};
+	
+	public static void setClipBookmars(BookMark bookmark){
+		_clipBookmars.clear();
+		_clipBookmars.add(bookmark);
+	};
+	
+	public static void setClipBookmars(List<BookMark> bookmarks){
+		_clipBookmars.clear();
+		_clipBookmars.addAll(bookmarks);
+	};
+
+	public static List<BookMark> getClipBookmars(){
+		return _clipBookmars;
+	}
+
     public void addChildren(List<BookMark> children) {
     	this._children = children;
     	for (BookMark child : children) {
     		child._parent = this;
     	}
     }
-        
+    
+    public static boolean copyChild(BookMark targetFolder, BookMark sourceBookmark) {
+    	if (sourceBookmark.isDescendant(targetFolder)) {
+    		return false;
+    	}
+		if(targetFolder.getChildren().contains(sourceBookmark)) {
+			return false;
+		}
+    	targetFolder.addChild(sourceBookmark);
+    	return true;
+    }
+    
+    public boolean isDescendant(BookMark child) {
+    	BookMark ancestor = child;
+    	while (ancestor != bookBar) {
+        	if (ancestor == this) {
+        		return true;
+        	} else if (ancestor == _parent) {
+        		return false;
+        	}
+        	ancestor = ancestor.getParent();
+    	}
+    	return false;
+    }
+    
+    public static void moveChild(BookMark targetFolder, BookMark sourceBookmark) {
+    	sourceBookmark.getParent().removeChild(sourceBookmark);
+    	copyChild(targetFolder, sourceBookmark);
+    }
+    
     public void addChild(BookMark child) {
     	_children.add(child);
 		child._parent = this;

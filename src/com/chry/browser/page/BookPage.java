@@ -70,6 +70,7 @@ public class BookPage  extends CTabItem {
 	private SelectAction select_folder_action;
 	private UpAction up_action;
 	private CreateNewFolderAction create_new_folder_action;
+	private RefreshAction refresh_action;
 
 	BrowserWindow _window;
 
@@ -83,12 +84,14 @@ public class BookPage  extends CTabItem {
 		menu_manager.add(cut_action);
 		menu_manager.add(delete_action);
 		menu_manager.add(new Separator());
-		menu_manager.add(select_all_action);
-		menu_manager.add(select_file_action);
-		menu_manager.add(select_folder_action);
-		menu_manager.add(new Separator());
+//		menu_manager.add(select_all_action);
+//		menu_manager.add(select_file_action);
+//		menu_manager.add(select_folder_action);
+//		menu_manager.add(new Separator());
 		menu_manager.add(rename_action);
 		menu_manager.add(create_new_folder_action);
+		menu_manager.add(new Separator());
+		menu_manager.add(refresh_action);
 		return menu_manager;
 	}
 
@@ -116,6 +119,7 @@ public class BookPage  extends CTabItem {
 		select_file_action = new SelectAction( this, SelectAction.SELECT_TYPE_FILE );
 		select_folder_action = new SelectAction( this, SelectAction.SELECT_TYPE_FOLDER );
 		create_new_folder_action = new CreateNewFolderAction( this );
+		refresh_action = new RefreshAction(this);
 	}
 
 	public BookPage(BrowserWindow window) {
@@ -183,7 +187,7 @@ public class BookPage  extends CTabItem {
 
 		final Composite rightComposite = new Composite( sash_form, SWT.NONE );
 		rightComposite.setLayout( new BorderLayout( 0, 0 ) );
-		tbv = new TableViewer( rightComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI );
+		tbv = new TableViewer( rightComposite, SWT.BORDER | SWT.FULL_SELECTION );
 		tbv.setContentProvider( new BookmarkTableContentProvider() );
 		tbv.setLabelProvider( new BookmarkTableLabelProvider() );
 		tbv.setSorter( new BookmarkSorter() );

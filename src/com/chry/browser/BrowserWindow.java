@@ -1185,7 +1185,7 @@ public class BrowserWindow {
         	if (parentFolder == BookMark.getBarBook()) {
         		_addBookmarkToBar(bookFolder);
         	} else {
-            	Menu menu = _menuFolders.get(parentFolder);
+            	Menu menu = _menuFolders.get(parentFolder.getName());
         		_addBookmarkToMenu(menu, bookFolder);
         	}
     	}
