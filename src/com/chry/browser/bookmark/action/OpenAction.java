@@ -13,7 +13,8 @@ import com.chry.browser.page.BookPage;
 public class OpenAction extends Action implements ISelectionChangedListener, IDoubleClickListener {
 	BookPage _bookPage;
 	public OpenAction( BookPage bookPage ) {
-		_bookPage = bookPage;		setText("打开...@Alt+O" );
+		_bookPage = bookPage;		setText("打开..." );
+//		setText("打开...@Alt+O" );
 	}
 
 	public void run()
@@ -24,10 +25,9 @@ public class OpenAction extends Action implements ISelectionChangedListener, IDo
 		}
 		BookMark selectedItem = (BookMark)selection.getFirstElement();
 		if( selectedItem.isFolder()) {
-			//TODO
-		}
-		else if(selectedItem.isFolder()){
 			_bookPage.openFolder(selectedItem);
+		} else {
+			_bookPage.openWebPage(selectedItem);
 		}
 	}
 

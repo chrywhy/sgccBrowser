@@ -15,7 +15,8 @@ public class CopyFileNamesToClipboardAction extends Action {
 
 	public CopyFileNamesToClipboardAction(BookPage bookPage){
 		_bookPage = bookPage;
-		setText("复制@Ctrl+C" );
+		setText("复制" );
+//		setText("复制@Ctrl+C" );
 	}
 
 	public void run() {

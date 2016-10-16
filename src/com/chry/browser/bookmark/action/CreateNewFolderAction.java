@@ -18,7 +18,8 @@ public class CreateNewFolderAction extends Action {
 
 	public CreateNewFolderAction( BookPage bookPage ) {
 		_bookPage = bookPage;
-		setText("新建文件夹@Ctrl+N" );
+		setText("新建文件夹" );
+//		setText("新建文件夹@Ctrl+N" );
 	}
 
 	public void run() {

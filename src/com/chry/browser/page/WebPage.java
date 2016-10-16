@@ -68,14 +68,18 @@ public class WebPage extends CTabItem {
 	IHttpLoadProgressListener _iconListener;
 	private AsyncHttpClient _httpClient;
 	
-	private WebPage(CTabFolder pageFolder, int style) {
-		super(pageFolder, style);
+	private WebPage(CTabFolder pageFolder, int style, int index) {
+		super(pageFolder, style, index);
     	addDisposeListener(new DisposeListener() {
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
 				if (_type == Type.NormalPage) {
-					_browserIE.dispose();
-					_browserFF.dispose();
+					if (!_browserIE.isDisposed()) {
+						_browserIE.dispose();
+					}
+					if (!_browserFF.isDisposed()) {
+						_browserFF.dispose();
+					}
 					if (_httpClient != null) {
 						_httpClient.clear();
 					}
@@ -111,7 +115,11 @@ public class WebPage extends CTabItem {
 	}
 	
     public static WebPage createBlankPage(BrowserWindow window) {
-		WebPage webPage = new WebPage(window.getPageFolder(), SWT.CLOSE | SWT.BORDER);
+    	return createBlankPage(window, window.getPageFolder().getItemCount()-1);
+    }
+    
+    public static WebPage createBlankPage(BrowserWindow window, int index) {
+		WebPage webPage = new WebPage(window.getPageFolder(), SWT.CLOSE | SWT.BORDER, index);
 		webPage._type = Type.NormalPage;
 		webPage.setText(Type.NormalPage.title());
     	webPage._window = window;
@@ -122,7 +130,11 @@ public class WebPage extends CTabItem {
 	}
     
     public static WebPage createSettingUserPage(BrowserWindow window) {
-		WebPage webPage = new WebPage(window.getPageFolder(), SWT.CLOSE | SWT.BORDER);
+    	return createSettingUserPage(window, window.getPageFolder().getItemCount()-1);
+    }
+    
+    public static WebPage createSettingUserPage(BrowserWindow window, int index) {
+		WebPage webPage = new WebPage(window.getPageFolder(), SWT.CLOSE | SWT.BORDER, index);
 		webPage._type = Type.SettingUserPage;
 		webPage.setText(Type.SettingUserPage.title());
     	webPage._window = window;
@@ -135,7 +147,11 @@ public class WebPage extends CTabItem {
 	}
     
     public static WebPage createSettingSitePage(BrowserWindow window) {
-		WebPage webPage = new WebPage(window.getPageFolder(), SWT.CLOSE | SWT.BORDER);
+    	return createSettingUserPage(window, window.getPageFolder().getItemCount()-1);
+    }
+    
+    public static WebPage createSettingSitePage(BrowserWindow window, int index) {
+		WebPage webPage = new WebPage(window.getPageFolder(), SWT.CLOSE | SWT.BORDER, window.getPageFolder().getItemCount()-1);
 		webPage._type = Type.SettingSitePage;
 		webPage.setText(Type.SettingSitePage.title());
     	webPage._window = window;
@@ -148,7 +164,11 @@ public class WebPage extends CTabItem {
 	}
     
     public static WebPage createDownloadPage(BrowserWindow window) {
-		WebPage webPage = new WebPage(window.getPageFolder(), SWT.BORDER);
+    	return createSettingUserPage(window, window.getPageFolder().getItemCount()-1);
+    }
+    
+    public static WebPage createDownloadPage(BrowserWindow window, int index) {
+		WebPage webPage = new WebPage(window.getPageFolder(), SWT.BORDER, window.getPageFolder().getItemCount()-1);
 		webPage._type = Type.DownloadPage;
 		webPage.setText(Type.DownloadPage.title());
     	webPage._window = window;
@@ -156,7 +176,7 @@ public class WebPage extends CTabItem {
 	}
     
     public static WebPage createPageGenerator(BrowserWindow window) {
-		WebPage webPage = new WebPage(window.getPageFolder(), SWT.BORDER);
+		WebPage webPage = new WebPage(window.getPageFolder(), SWT.BORDER, window.getPageFolder().getItemCount());
 		webPage._type = Type.pageGenerator;
 		webPage.setText(Type.pageGenerator.title());
     	webPage._window = window;

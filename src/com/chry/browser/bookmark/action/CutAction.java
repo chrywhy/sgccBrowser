@@ -17,7 +17,8 @@ public class CutAction extends Action
 	public CutAction( BookPage bookPage )
 	{
 		_bookPage = bookPage;
-		setText( "剪切@Ctrl+X" );
+		setText( "剪切" );
+//		setText( "剪切@Ctrl+X" );
 //		setImageDescriptor( ImageDescriptor.createFromURL( JExplorerUtil.newURL( "file:icons/cut.gif" ) ) );
 	}
 
@@ -32,7 +33,11 @@ public class CutAction extends Action
 		
 		for(Iterator i = selection.iterator(); i.hasNext();){
 			BookMark bookmark = (BookMark) i.next();
+			BookMark parent = bookmark.getParent();
 			BookMark.addClipBookmars(bookmark);
+			parent.removeChild(bookmark);
+			_bookPage.removeBookBar(bookmark);
 		}
+		BookMark.save();
 	}
 }

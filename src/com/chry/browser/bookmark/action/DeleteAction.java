@@ -24,7 +24,8 @@ public class DeleteAction extends Action implements ISelectionChangedListener
 	{
 		_bookPage = bookPage;
 //		setToolTipText( "Delete Files" );
-		setText( "&删除@Delete" );
+		setText( "删除" );
+//		setText( "剪切@Ctrl+X" );
 //		setImageDescriptor( ImageDescriptor.createFromURL( JExplorerUtil.newURL( "file:icons/delete.gif" ) ) );
 	}
 

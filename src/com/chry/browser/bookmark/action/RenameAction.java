@@ -3,6 +3,7 @@ package com.chry.browser.bookmark.action;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.SWT;
 
 import com.chry.browser.bookmark.BookMark;
 import com.chry.browser.page.BookPage;
@@ -16,7 +17,9 @@ public class RenameAction extends Action {
 		_bookPage = bookPage;
 		// setEnabled( false );
 //		setToolTipText( "Rename file" );
-		setText( "重命名@F2" );
+		setText( "重命名" );
+//		setText( "重命名@F2" );
+//		setAccelerator(SWT.F2);
 //		setImageDescriptor( ImageDescriptor.createFromURL( JExplorerUtil.newURL( "file:icons/rename.gif" ) ) );
 	}
 

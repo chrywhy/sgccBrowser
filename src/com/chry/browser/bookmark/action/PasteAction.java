@@ -15,7 +15,8 @@ public class PasteAction extends Action {
 
 	public PasteAction( BookPage bookPage ) {
 		_bookPage = bookPage;
-		setText( "粘贴@Ctrl+V" );
+		setText( "粘贴" );
+//		setText( "粘贴@Ctrl+V" );
 	}
 
 	public void run(){
@@ -47,11 +48,7 @@ public class PasteAction extends Action {
 				msgBox.open();
 				return;
 			}
-			if (BookMark.copyChild(targetFolder, bookmark)) {
-				if (_bookPage.isCut()) {
-					targetFolder.removeChild(bookmark);
-				}
-			} else {
+			if (!BookMark.copyChild(targetFolder, bookmark)) {
 				MessageBox msgBox = new MessageBox( _bookPage.getShell(), SWT.OK );
 				msgBox.setMessage( "\"" + bookmark.getName() + "\" 不能复制到自己的下级文件夹" );
 				msgBox.open();

@@ -1,6 +1,5 @@
 package com.chry.browser.page;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -35,12 +34,10 @@ import com.chry.browser.bookmark.action.CopyFileNamesToClipboardAction;
 import com.chry.browser.bookmark.action.CreateNewFolderAction;
 import com.chry.browser.bookmark.action.CutAction;
 import com.chry.browser.bookmark.action.DeleteAction;
-import com.chry.browser.bookmark.action.FilterAction;
 import com.chry.browser.bookmark.action.OpenAction;
 import com.chry.browser.bookmark.action.PasteAction;
 import com.chry.browser.bookmark.action.RefreshAction;
 import com.chry.browser.bookmark.action.RenameAction;
-import com.chry.browser.bookmark.action.SelectAction;
 import com.chry.browser.bookmark.action.UpAction;
 import com.chry.browser.bookmark.logic.filter.AllowOnlyFoldersFilter;
 import com.chry.browser.bookmark.logic.filter.FileNameFilter;
@@ -50,7 +47,6 @@ import com.chry.browser.bookmark.provider.BookmarkTableContentProvider;
 import com.chry.browser.bookmark.provider.BookmarkTableLabelProvider;
 import com.chry.browser.bookmark.provider.FileTreeContentProvider;
 import com.chry.browser.bookmark.provider.FileTreeLabelProvider;
-import com.chry.browser.bookmark.util.FileUtil;
 import com.chry.util.swt.layout.AutoResizeTableLayout;
 import com.chry.util.swt.layout.BorderLayout;
 
@@ -65,9 +61,6 @@ public class BookPage  extends CTabItem {
 	private OpenAction open_action;
 	private PasteAction paste_action;
 	private RenameAction rename_action;
-	private SelectAction select_all_action;
-	private SelectAction select_file_action;
-	private SelectAction select_folder_action;
 	private UpAction up_action;
 	private CreateNewFolderAction create_new_folder_action;
 	private RefreshAction refresh_action;
@@ -115,20 +108,20 @@ public class BookPage  extends CTabItem {
 		cut_action = new CutAction( this );
 		paste_action = new PasteAction( this );
 		rename_action = new RenameAction( this );
-		select_all_action = new SelectAction( this, SelectAction.SELECT_TYPE_ALL );
-		select_file_action = new SelectAction( this, SelectAction.SELECT_TYPE_FILE );
-		select_folder_action = new SelectAction( this, SelectAction.SELECT_TYPE_FOLDER );
+//		select_all_action = new SelectAction( this, SelectAction.SELECT_TYPE_ALL );
+//		select_file_action = new SelectAction( this, SelectAction.SELECT_TYPE_FILE );
+//		select_folder_action = new SelectAction( this, SelectAction.SELECT_TYPE_FOLDER );
 		create_new_folder_action = new CreateNewFolderAction( this );
 		refresh_action = new RefreshAction(this);
 	}
 
-	public BookPage(BrowserWindow window) {
-		this(window.getPageFolder(), SWT.BORDER | SWT.CLOSE);
+	public BookPage(BrowserWindow window, int index) {
+		this(window.getPageFolder(), SWT.BORDER | SWT.CLOSE, index);
 		_window = window;
 	}
 	
-	private BookPage(CTabFolder parent, int style) {
-		super(parent, style);
+	private BookPage(CTabFolder parent, int style, int index) {
+		super(parent, style, index);
 		_parent = parent;
 		_initActions();
 		createContents();
@@ -291,14 +284,8 @@ public class BookPage  extends CTabItem {
 	{
 		doFileter( "", "" );
 	}
-
-	public boolean isCut()
-	{
-		return isCut;
-	}
-
-	public void setCut( boolean isCut )
-	{
-		this.isCut = isCut;
+	
+	public void openWebPage(BookMark bookamark) {
+		_window.createPage(bookamark.getUrl());
 	}
 }

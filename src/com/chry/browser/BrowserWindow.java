@@ -114,7 +114,7 @@ public class BrowserWindow {
     private ToolBar _bookBar;
     private Composite _pageArea;
     private CTabFolder _pageFolder;
-    private WebPage _activePage = null;
+    private CTabItem _activePage = null;
     private WebPage _pageGenerator = null;
 
     private Composite _southArea;
@@ -147,7 +147,7 @@ public class BrowserWindow {
     private void _initTitleArea() {
         _shell.setToolTipText("国网自主虚拟化双核浏览器V1.0");
         _shell.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/sg-logo.png"));
-        _shell.setText("国网自主双核安全浏览器V1.0");
+        _shell.setText("国网自主双核安全浏览器V1.0(2016-10-16)");
         _shell.setLayout(new BorderLayout(0, 0));
     }
     
@@ -191,14 +191,14 @@ public class BrowserWindow {
         menuItem_save.addSelectionListener(new SelectionAdapter() {            
             public void widgetSelected(SelectionEvent e) {
 /*                
-                String pageText = _activePage.getBrowser().getText();
+                String pageText = getActiveWebPage().getBrowser().getText();
                 FileDialog filedlg=new FileDialog(_shell, SWT.OPEN);
                 filedlg.setText("文件选择");
                 filedlg.setFilterPath(BrowserConfig.ROOT);
                 String selected = filedlg.open();
                 FileUtil.WriteStringToFile(pageText, selected);
 */
-                _activePage.getBrowser().execute("document.execCommand('SaveAs')");
+        		getActiveWebPage().getBrowser().execute("document.execCommand('SaveAs')");
             }
         });
         
@@ -276,7 +276,7 @@ public class BrowserWindow {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 MessageBox messageBox = new MessageBox(_shell, SWT.ICON_INFORMATION|SWT.OK);
-                messageBox.setMessage("文件菜单：主要包括新建窗口、保存网页以及退出三部分功能。 \n收藏菜单：用于收藏常用网页。\n工具菜单：包括下载管理、用户管理以及安全策略管理。\n帮助菜单：包括使用帮助、报告错误、升级和软件情况。");
+                messageBox.setMessage("国网安全浏览器和后台安全策略服务器配合，可屏蔽黑名单风险网站，\n未连接安全服务器的情况下和普通浏览器一样使用。");
                 messageBox.open();
             }
         });
@@ -284,6 +284,26 @@ public class BrowserWindow {
         
         MenuItem menuItem_errorslog = new MenuItem(menu_3, SWT.NONE);
         menuItem_errorslog.setText("报告错误");
+        menuItem_errorslog.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (_user == null || _user.isEmpty()) {
+                	ReportErrorDialog login = new ReportErrorDialog(_window.getShell());
+                    login.open();
+                } else {
+                    setLogin(null,"1");
+                }
+            	String text; 
+            	if (SafeGate.isSafeGateEnabled()) {
+            		text = "错误上报成功";
+            	} else {
+            		text = "安全服务器未连接，无法上报错误！";
+            	}
+                MessageBox messageBox = new MessageBox(_shell, SWT.ICON_INFORMATION|SWT.OK);
+                messageBox.setMessage(text);
+                messageBox.open();
+            }
+        });
         
         new MenuItem(menu_3, SWT.SEPARATOR);
         
@@ -399,7 +419,7 @@ public class BrowserWindow {
         _btnBackward.addListener(SWT.Selection, new Listener(){
             @Override
             public void handleEvent(Event e) {
-                Browser browser = _activePage.getBrowser();
+                Browser browser = getActiveWebPage().getBrowser();
                 if (browser.isBackEnabled()) {
                     browser.back();
                     _btnForward.setEnabled(true);
@@ -414,7 +434,7 @@ public class BrowserWindow {
         _btnForward.addListener(SWT.Selection, new Listener(){
             @Override
             public void handleEvent(Event e) {
-                Browser browser = _activePage.getBrowser();
+                Browser browser = getActiveWebPage().getBrowser();
                 if (browser.isForwardEnabled()) {
                     browser.forward();
                     _btnBackward.setEnabled(true);
@@ -429,10 +449,11 @@ public class BrowserWindow {
         _btnGo.addListener(SWT.Selection, new Listener(){
             @Override
             public void handleEvent(Event event) {
-                if (_activePage.getType() != WebPage.Type.NormalPage) {
-                    _activePage.setType(WebPage.Type.NormalPage);
+            	WebPage webPage = getActiveWebPage();
+                if (webPage.getType() != WebPage.Type.NormalPage) {
+                	getActiveWebPage().setType(WebPage.Type.NormalPage);
                 }
-                _activePage.load(_inputUrl.getText().trim());
+                webPage.load(_inputUrl.getText().trim());
             }            
         });
                 
@@ -555,7 +576,9 @@ public class BrowserWindow {
         _btnRefreshOrStop.addListener(SWT.Selection,new Listener(){
             @Override
             public void handleEvent(Event e) {
-                _activePage.refreshOrStop();
+            	if (_activePage instanceof WebPage) {
+            		_window.getActiveWebPage().refreshOrStop();
+            	}
             }
         });
 
@@ -563,15 +586,15 @@ public class BrowserWindow {
         _btnSearch.addListener(SWT.Selection, new Listener(){
             @Override
             public void handleEvent(Event e) {
-                _activePage.load("http://www.baidu.com/s?wd=" + _inputUrl.getText().trim());
-            }            
+            	_window.getActiveWebPage().load("http://www.baidu.com/s?wd=" + _inputUrl.getText().trim());
+            }           
         });    
         //Click book button
         _btnBook.addListener(SWT.Selection, new Listener(){
             @Override
             public void handleEvent(Event e) {
-                String sUrl = _activePage.getUrl();
-                String title = _activePage.getText();
+                String sUrl = getActiveWebPage().getUrl();
+                String title = getActiveWebPage().getText();
                 
                 AddBookItemDialog addBookItemDialog = new AddBookItemDialog(_window, title, sUrl);
                 Rectangle rect = _btnBook.getBounds();
@@ -600,7 +623,7 @@ public class BrowserWindow {
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
 					BookMark bookmark = (BookMark)book.getData();
-	            	_window._activePage.load(bookmark.getUrl());
+	            	_window.getActiveWebPage().load(bookmark.getUrl());
 				}
             });
         }
@@ -700,13 +723,13 @@ public class BrowserWindow {
             subItem.addSelectionListener(new SelectionListener() {
 				@Override
 				public void widgetDefaultSelected(SelectionEvent arg0) {
-					_window._activePage.load((String)subItem.getData("url"));
+					_window.getActiveWebPage().load((String)subItem.getData("url"));
 				}
 
 				@Override
 				public void widgetSelected(SelectionEvent arg0) {
 					BookMark bookmark = (BookMark)subItem.getData();
-					_window._activePage.load(bookmark.getUrl());
+					_window.getActiveWebPage().load(bookmark.getUrl());
 				}                	
             });
     	}
@@ -828,8 +851,10 @@ public class BrowserWindow {
             System.setProperty("org.eclipse.swt.browser.IEVersion", ieVer);
             _btnSwitchCore.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/" + tarCore + ".png"));
             _btnSwitchCore.setText(tarCore);
-            _activePage.setBrowserCore(_coreType, ieVer);
-            _activePage.refresh();
+            if (_activePage instanceof WebPage) {
+            	getActiveWebPage().setBrowserCore(_coreType, ieVer);
+            	getActiveWebPage().refresh();
+            }
         }
     }
     
@@ -899,11 +924,16 @@ public class BrowserWindow {
         _pageFolder.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {
-                WebPage webPage = (WebPage)e.item;
-                if (webPage.getType() != WebPage.Type.pageGenerator) {
-                    _activePage = (WebPage)e.item;
-                    _activePage.setCurUrl(_activePage.getUrl());
-                }
+            	if (e.item instanceof WebPage) {
+                    WebPage webPage = (WebPage)e.item;
+                    if (webPage.getType() != WebPage.Type.pageGenerator) {
+	                    _activePage = webPage;
+	                    webPage.setCurUrl(getActiveWebPage().getUrl());
+                    }
+            	} else if (e.item instanceof BookPage) {
+                    BookPage bookPage = (BookPage)e.item;
+                    _activePage = bookPage;
+            	}
             }
 
             @Override
@@ -911,20 +941,21 @@ public class BrowserWindow {
             	if (e.item instanceof WebPage) {
 	                WebPage webPage = (WebPage)e.item;
 	                if (webPage.getType() != WebPage.Type.pageGenerator) {
-	                    _activePage = (WebPage)e.item;
-	                    _activePage.setCurUrl(_activePage.getUrl());
+	                	String sUrl = webPage.getUrl().trim();
+                		_window.setUrl(sUrl);
 	                }
             	} else {
-            		
+                    setUrl("");
             	}
+                _activePage = (CTabItem)e.item;
             }
         });
         
         _pageFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
             public void close(CTabFolderEvent e) {
                 if (_pageFolder.getItemCount() == 2) {
-                    _activePage.load("about:blank");
-                    _activePage.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/page.png"));
+                    getActiveWebPage().load("about:blank");
+                    getActiveWebPage().setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/page.png"));
                     e.doit = false;
                  }
             }
@@ -943,6 +974,7 @@ public class BrowserWindow {
     	_initWindow();
         _shell.open();
         _shell.layout();
+        _pageGenerator = WebPage.createPageGenerator(this);
         _activePage = createPage(url);
         _switchCore(_mIE, SWT.NONE, "default");
         _menuBar.setVisible(true);
@@ -1035,14 +1067,14 @@ public class BrowserWindow {
     public void loadOrSearch(String inputStr) {
         inputStr = inputStr.trim();
         if (inputStr.isEmpty()) {
-            if (_activePage.getType() == WebPage.Type.SettingSitePage 
-               || _activePage.getType() == WebPage.Type.SettingUserPage ) {
-                setUrl(_activePage.getType().title());
+            if (getActiveWebPage().getType() == WebPage.Type.SettingSitePage 
+               || getActiveWebPage().getType() == WebPage.Type.SettingUserPage ) {
+                setUrl(getActiveWebPage().getType().title());
             }
             return;
         }
-        if (_activePage.getType() != WebPage.Type.NormalPage) {
-            _activePage.setType(WebPage.Type.NormalPage);
+        if (getActiveWebPage().getType() != WebPage.Type.NormalPage) {
+        	getActiveWebPage().setType(WebPage.Type.NormalPage);
         }
         
         URL url = parseUrl(inputStr);
@@ -1052,7 +1084,7 @@ public class BrowserWindow {
         } else {
             sUrl = url.toString();
         }
-        _activePage.load(sUrl);
+        getActiveWebPage().load(sUrl);
     }
     
     public void setUrl(String sUrl) {
@@ -1101,22 +1133,21 @@ public class BrowserWindow {
         if (urlString != null && !urlString.trim().isEmpty()) {
             webPage.load(urlString);
         }
+/*
         if (_pageGenerator != null) {
             _pageGenerator.dispose();
         }
         _pageGenerator = WebPage.createPageGenerator(this);
+*/
         return webPage;
     }
 
     public BookPage createBookPage() {
-		BookPage bookPage = new BookPage(this);
+		BookPage bookPage = new BookPage(this, _pageFolder.getItemCount()-1);
 		bookPage.setText("书签管理");
 		bookPage.setImage(ImageConfig.getBookIcon());
 		_pageFolder.setSelection(bookPage);
-        if (_pageGenerator != null) {
-            _pageGenerator.dispose();
-        }
-        _pageGenerator = WebPage.createPageGenerator(this);
+		_activePage = bookPage;
 		return bookPage;
     }
     
@@ -1190,4 +1221,16 @@ public class BrowserWindow {
         	}
     	}
     }
+    
+	public WebPage getActiveWebPage() {
+		if (_activePage instanceof WebPage) {
+			return (WebPage)_activePage;
+		} else {
+			int index = _pageFolder.getSelectionIndex();
+			_activePage.dispose();
+			_activePage = WebPage.createBlankPage(this, index);
+			_pageFolder.setSelection(_activePage);
+			return (WebPage)_activePage;
+		}
+	}
 }
