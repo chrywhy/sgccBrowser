@@ -22,9 +22,15 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import com.chry.browser.BrowserWindow;
@@ -64,7 +70,8 @@ public class WebPage extends CTabItem {
 	private int _loadPercent = 100;
 	private boolean _loadCompleted = true;
 	private String _curUrl = "";
-	private String _newUrl = "";
+	private String _latestValidUrl = "";
+	private String _latestText = "";
 	IHttpLoadProgressListener _iconListener;
 	private AsyncHttpClient _httpClient;
 	
@@ -110,6 +117,10 @@ public class WebPage extends CTabItem {
 			
 			@Override
 			public void progress(int paramInt) {
+			}
+
+			@Override
+			public void initSize(int size) {
 			}
     	};
 	}
@@ -198,7 +209,43 @@ public class WebPage extends CTabItem {
     
     private Browser _createBrowser(Composite composite, int browserType){
 		Browser browser = new Browser(composite, browserType);
-		new DomControl (_window, browser, "clickHyperLink");				
+		new DomControl (_window, browser, "clickHyperLink");
+		final Menu browserMenu = new Menu(browser);
+		MenuItem item = new MenuItem(browserMenu, SWT.NONE);
+		item.setText("另外为...");
+		item.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				_window.saveAs(_latestText);
+			}
+		});
+		browser.setMenu(new Menu(browser));
+
+		browser.addMouseListener(new MouseListener(){
+
+			@Override
+			public void mouseDoubleClick(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseDown(MouseEvent e) {
+				if (e.button == 3) {
+					browserMenu.setVisible(true);
+				}
+			}
+
+			@Override
+			public void mouseUp(MouseEvent arg0) {
+			}
+        });
+		
 		browser.addProgressListener(new ProgressListener(){
 			@Override
 			public void changed(ProgressEvent e) {
@@ -246,7 +293,7 @@ public class WebPage extends CTabItem {
 		browser.addOpenWindowListener(new OpenWindowListener() {
 			@Override
 			public void open(WindowEvent e) {
-				WebPage webPage = _window.createPage(_newUrl);
+				WebPage webPage = _window.createPage(_latestValidUrl);
 				e.browser = webPage._browser;
 			}
 		});
@@ -286,13 +333,14 @@ public class WebPage extends CTabItem {
 //					label_status.setText(e.text);
 				}
 				try {
-				    new URL(e.text); //check if it is a valid URL
-					_newUrl = e.text;
-                	_window.setStatus(_newUrl);
-					logger.debug("New URL:" + "'" + _newUrl + "'");
+					_latestText = e.text;
+				    new URL(_latestText); //check if it is a valid URL
+					_latestValidUrl = _latestText;
+                	_window.setStatus(_latestValidUrl);
+					logger.debug("New URL:" + "'" + _latestValidUrl + "'");
 				} catch (Exception ex) {
 //                	_window.setStatus("");
-					logger.debug("statusText_changed:" + "'" + _newUrl + "'");
+					logger.debug("statusText_changed:" + "'" + _latestValidUrl + "'");
 				}
 			}
 		});

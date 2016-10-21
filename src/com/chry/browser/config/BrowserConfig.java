@@ -57,15 +57,14 @@ public class BrowserConfig {
 	public static String FavoritePath = ROOT + File.separator + ".safeBrowserFavorite";
 	public static String FaviconPath = FavoritePath + File.separator + "favicons";
 	public static String BookFile = FavoritePath + File.separator + "bookmarks";
-	public static String HistoryFile = FavoritePath + File.separator + "history";
+	public static String DownloadFolder = ROOT + File.separator + "downloads";
+	public static String DownloadHistory = FavoritePath + File.separator + "downloadHistory";
 	public static PropConf history;
 	static {
 		try {
 			FileUtil.createDirectory(FavoritePath);
 			FileUtil.hideDirectory(FavoritePath);
 			FileUtil.createDirectory(FaviconPath);
-			FileUtil.createFile(HistoryFile);
-			history = new PropConf(HistoryFile);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

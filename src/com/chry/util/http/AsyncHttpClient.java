@@ -66,6 +66,8 @@ public class AsyncHttpClient extends HttpClient {
 			    	HttpURLConnection conn = rspStream.getHttpURLConnection();
 			    	int code = rspStream.getResponseCode();
 			    	if (code == 200) {
+				    	int size = conn.getContentLength();
+				    	_progressListener.initSize(size);
 				    	FileUtil.createFile(_filePath);
 				    	FileOutputStream fos = new FileOutputStream(_filePath);
 				        rspStream.decodeToStream(fos, _progressListener);
@@ -97,6 +99,20 @@ public class AsyncHttpClient extends HttpClient {
         AccessTask task = new AccessTask(sUrl);
         _executor.execute(task);
         return task.getId();
+    }
+    
+    public int startDownload(String sUrl, String fullPath) {
+    	String path;
+    	String filename;
+    	int index = fullPath.lastIndexOf(File.separator);
+    	if (index < 0) {
+    		path = ".";
+    		filename = fullPath;
+    	} else {
+    		path = fullPath.substring(0, index);
+    		filename = fullPath.substring(index + 1);
+    	}
+    	return startDownload(sUrl, path, filename);
     }
     
     public int startDownload(String sUrl, String path, String filename) {

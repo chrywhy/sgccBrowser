@@ -47,6 +47,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -62,10 +63,17 @@ import com.chry.browser.bookmark.BookMark;
 import com.chry.browser.bookmark.BookMark.Type;
 import com.chry.browser.config.BrowserConfig;
 import com.chry.browser.config.ImageConfig;
+import com.chry.browser.download.Download;
+import com.chry.browser.download.Downloads;
 import com.chry.browser.page.BookPage;
+import com.chry.browser.page.DownloadPage;
 import com.chry.browser.page.WebPage;
 import com.chry.browser.safe.LoginDialog;
 import com.chry.browser.safe.SafeGate;
+import com.chry.util.FileUtil;
+import com.chry.util.http.AsyncHttpClient;
+import com.chry.util.http.IHttpLoadProgressListener;
+import com.chry.util.http.LoadEvent;
 import com.chry.util.swt.SWTResourceManager;
 import com.chry.util.swt.layout.BorderLayout;
 
@@ -229,6 +237,12 @@ public class BrowserWindow {
         
         MenuItem menuItem_download = new MenuItem(menuTools, SWT.NONE);
         menuItem_download.setText("下载管理");
+        menuItem_download.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	_window.createDownloadPage();
+            }
+        });
         
         _itemLoginOrLogout = new MenuItem(menuTools, SWT.NONE);
         _itemLoginOrLogout.addSelectionListener(new SelectionAdapter() {
@@ -1151,6 +1165,17 @@ public class BrowserWindow {
 		return bookPage;
     }
     
+    public DownloadPage createDownloadPage() {
+    	DownloadPage downloadPage = new DownloadPage(this, _pageFolder.getItemCount()-1);
+    	downloadPage.setText("下载管理");
+    	downloadPage.setImage(ImageConfig.getBookIcon());
+		_pageFolder.setSelection(downloadPage);
+		_activePage = downloadPage;
+		downloadPage.refresh();
+		downloadPage.startMonitor();
+		return downloadPage;
+    }
+    
     public CTabFolder getPageFolder() {
         return _pageFolder;
     }
@@ -1232,5 +1257,24 @@ public class BrowserWindow {
 			_pageFolder.setSelection(_activePage);
 			return (WebPage)_activePage;
 		}
+	}
+	
+	public String saveAs(final String sUrl) {
+		try {
+			new URL(sUrl);
+		} catch (Exception e){
+    		getActiveWebPage().getBrowser().execute("document.execCommand('SaveAs')");
+    		return "";
+		}
+		Download download = new Download(sUrl);
+        FileDialog filedlg = new FileDialog(_shell, SWT.OPEN);
+        filedlg.setText("文件选择");
+        filedlg.setFilterPath(BrowserConfig.ROOT);
+        filedlg.setFileName(download.getFilename());
+        final String fileFullPath = filedlg.open();
+        download.setFilename(filedlg.getFileName());
+        download.setPath(filedlg.getFilterPath());
+        Downloads.add(download);
+        return fileFullPath;
 	}
 }
