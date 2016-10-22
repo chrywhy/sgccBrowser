@@ -1,5 +1,6 @@
 package com.chry.browser;
 
+import java.awt.Cursor;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -45,6 +48,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
@@ -159,6 +163,26 @@ public class BrowserWindow {
         _shell.setLayout(new BorderLayout(0, 0));
     }
     
+    private boolean _killDownloading() {
+    	boolean forceStop = false;
+		for (Download download: Downloads.getDownloads()) {
+			if (!download.isFinished()) {
+				if (forceStop == false) {
+					int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+				    MessageBox messageBox = new MessageBox(_shell, style);
+				    messageBox.setText("还有下载任务未完成");
+				    messageBox.setMessage("继续关闭将中断下载任务， 你确认继续吗？");
+				    forceStop = messageBox.open() == SWT.YES;
+				    if (!forceStop) {
+				    	return false;
+				    }
+				}
+				download.stop();
+			}
+		}
+		return true;
+    }
+    
     private void _initWindowEvents(){
         _shell.addControlListener(new ControlListener() {
             @Override
@@ -173,28 +197,17 @@ public class BrowserWindow {
                 _initBookArea();
             }
         });
+        _shell.addListener(SWT.Close, new Listener() {  
+            public void handleEvent(Event event) {  
+            	event.doit = _killDownloading();
+            }  
+        });        
     }
     
     private void _initMenuArea() {
     	_menu = new Menu(_shell, SWT.POP_UP);
-//        _shell.setMenuBar(_menu);
 
-        MenuItem menuItem_file = new MenuItem(_menu, SWT.CASCADE);
-        menuItem_file.setText("文件");
-        
-        Menu newWindow = new Menu(menuItem_file);
-        menuItem_file.setMenu(newWindow);
-        
-        MenuItem menuItem = new MenuItem(newWindow, SWT.NONE);
-        menuItem.setText("新建窗口");
-        menuItem.addSelectionListener(new SelectionAdapter() {            
-            public void widgetSelected(SelectionEvent arg0) {
-                BrowserWindow window = new BrowserWindow();
-                window.open();
-            }            
-        });
-        
-        MenuItem menuItem_save = new MenuItem(newWindow, SWT.NONE);
+        MenuItem menuItem_save = new MenuItem(_menu, SWT.NONE);
         menuItem_save.setText("保存网页");
         menuItem_save.addSelectionListener(new SelectionAdapter() {            
             public void widgetSelected(SelectionEvent e) {
@@ -210,32 +223,9 @@ public class BrowserWindow {
             }
         });
         
-        new MenuItem(newWindow, SWT.SEPARATOR);
-        
-        MenuItem menuItem_exit = new MenuItem(newWindow, SWT.NONE);
-        menuItem_exit.setText("退出");
-        menuItem_exit.addSelectionListener(new SelectionAdapter(){
-            public void widgetSelected(SelectionEvent e) {
-                System.exit(0);
-            }
-        });
-        
-        MenuItem menuItem_collect = new MenuItem(_menu, SWT.CASCADE);
-        menuItem_collect.setText("收藏");
-        
-        Menu menu_1 = new Menu(menuItem_collect);
-        menuItem_collect.setMenu(menu_1);
-        
-        MenuItem menuItem_1 = new MenuItem(menu_1, SWT.NONE);
-        menuItem_1.setText("添加到收藏夹");
-        
-        MenuItem menuItem_tools = new MenuItem(_menu, SWT.CASCADE);
-        menuItem_tools.setText("工具");
-        
-        Menu menuTools = new Menu(menuItem_tools);
-        menuItem_tools.setMenu(menuTools);
-        
-        MenuItem menuItem_download = new MenuItem(menuTools, SWT.NONE);
+        new MenuItem(_menu, SWT.SEPARATOR);
+                                
+        MenuItem menuItem_download = new MenuItem(_menu, SWT.NONE);
         menuItem_download.setText("下载管理");
         menuItem_download.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -244,7 +234,22 @@ public class BrowserWindow {
             }
         });
         
-        _itemLoginOrLogout = new MenuItem(menuTools, SWT.NONE);
+        MenuItem menuItem_downloadFolder = new MenuItem(_menu, SWT.NONE);
+        menuItem_downloadFolder.setText("下载目录...");
+        menuItem_downloadFolder.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	DirectoryDialog folderdlg = new DirectoryDialog(_shell);
+            	folderdlg.setText("文件夹选择");
+            	folderdlg.setFilterPath(BrowserConfig.DownloadFolder);
+            	folderdlg.setMessage("请选择相应的文件夹");
+            	BrowserConfig.DownloadFolder = folderdlg.open();
+            }
+        });
+
+        new MenuItem(_menu, SWT.SEPARATOR);
+
+        _itemLoginOrLogout = new MenuItem(_menu, SWT.NONE);
         _itemLoginOrLogout.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -259,7 +264,7 @@ public class BrowserWindow {
         _itemLoginOrLogout.setText("用户登录");
         _itemLoginOrLogout.setEnabled(SafeGate.isSafeGateEnabled());    
         
-        _itemAdminUser = new MenuItem(menuTools, SWT.NONE);
+        _itemAdminUser = new MenuItem(_menu, SWT.NONE);
         _itemAdminUser.setText("用户管理");
         _itemAdminUser.setEnabled(false);    
         _itemAdminUser.addSelectionListener(new SelectionAdapter() {
@@ -269,7 +274,7 @@ public class BrowserWindow {
             }
         });
         
-        _itemAdminSite = new MenuItem(menuTools, SWT.NONE);
+        _itemAdminSite = new MenuItem(_menu, SWT.NONE);
         _itemAdminSite.setText("安全管理");
         _itemAdminSite.setEnabled(false);    
         _itemAdminSite.addSelectionListener(new SelectionAdapter() {
@@ -278,6 +283,8 @@ public class BrowserWindow {
                 createPage(WebPage.Type.SettingSitePage);
             }
         });
+
+        new MenuItem(_menu, SWT.SEPARATOR);
         
         MenuItem menuItem_help = new MenuItem(_menu, SWT.CASCADE);
         menuItem_help.setText("帮助");
@@ -301,15 +308,13 @@ public class BrowserWindow {
         menuItem_errorslog.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (_user == null || _user.isEmpty()) {
-                	ReportErrorDialog login = new ReportErrorDialog(_window.getShell());
-                    login.open();
-                } else {
-                    setLogin(null,"1");
-                }
             	String text; 
             	if (SafeGate.isSafeGateEnabled()) {
             		text = "错误上报成功";
+                    if (_user == null || _user.isEmpty()) {
+                    	ReportErrorDialog reportDialog = new ReportErrorDialog(_window.getShell());
+                    	reportDialog.open();
+                    }
             	} else {
             		text = "安全服务器未连接，无法上报错误！";
             	}
@@ -343,6 +348,16 @@ public class BrowserWindow {
             }
         });
         menuItem_about.setText("关于...");        
+
+        MenuItem menuItem_exit = new MenuItem(_menu, SWT.NONE);
+        menuItem_exit.setText("退出");
+        menuItem_exit.addSelectionListener(new SelectionAdapter(){
+            public void widgetSelected(SelectionEvent e) {
+            	if (_killDownloading()) {
+            		System.exit(0);
+            	}
+            }
+        });
     }
     
      private void _initToolBarArea() {
@@ -1269,12 +1284,14 @@ public class BrowserWindow {
 		Download download = new Download(sUrl);
         FileDialog filedlg = new FileDialog(_shell, SWT.OPEN);
         filedlg.setText("文件选择");
-        filedlg.setFilterPath(BrowserConfig.ROOT);
+        filedlg.setFilterPath(BrowserConfig.DownloadFolder);
         filedlg.setFileName(download.getFilename());
         final String fileFullPath = filedlg.open();
-        download.setFilename(filedlg.getFileName());
-        download.setPath(filedlg.getFilterPath());
-        Downloads.add(download);
+        if (fileFullPath != null) {
+	        download.setFilename(filedlg.getFileName());
+	        download.setPath(filedlg.getFilterPath());
+	        Downloads.add(download);
+        }
         return fileFullPath;
 	}
 }

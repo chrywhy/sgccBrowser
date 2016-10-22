@@ -3,10 +3,14 @@ package com.chry.browser.page;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
@@ -17,6 +21,7 @@ import com.chry.browser.download.DownloadItem;
 import com.chry.browser.download.Downloads;
 
 public class DownloadPage extends CTabItem {
+	static Logger logger = LogManager.getLogger(DownloadPage.class.getName());
 	List<DownloadItem> downloadItems;
 	BrowserWindow _window;
 	ScrolledComposite _sc;
@@ -25,6 +30,12 @@ public class DownloadPage extends CTabItem {
 	
 	public DownloadPage(CTabFolder parent, int style, int index) {
 		super(parent, style, index);
+		this.addDisposeListener(new DisposeListener(){
+			@Override
+			public void widgetDisposed(DisposeEvent arg0) {
+				progressMonitor.stopMonitor();
+			}
+		});
 	}
 
 	public DownloadPage(BrowserWindow window, int index) {
@@ -57,10 +68,12 @@ public class DownloadPage extends CTabItem {
 	
 	private void _loadDownloadItems() {
 		List<Download> downloads = Downloads.getDownloads();
+		int y = 50;
 		for (int i = downloads.size() - 1; i >= 0; i--) {
 			Download download = downloads.get(i);
-			DownloadItem item = new DownloadItem(_contents, download, i);
+			DownloadItem item = new DownloadItem(this, _contents, download, y);
 			downloadItems.add(item);
+			y += item.getHeight() + 5;
 		}
 	    _contents.setSize(_contents.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	    _contents.layout();    
@@ -68,7 +81,13 @@ public class DownloadPage extends CTabItem {
 	
 	public void refreshProgress() {
 		for (DownloadItem downloadItem : downloadItems) {
+			logger.info("refresh download Item: " + downloadItem.getDownload().getFilename());
 			downloadItem.refreshProgress();
 		}
+		logger.info("refresh downloads finished");
+	}
+	
+	public void setHasDownloadComplete() {
+		progressMonitor.setHasDownloadComplete();
 	}
 }

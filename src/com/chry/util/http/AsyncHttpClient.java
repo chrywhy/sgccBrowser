@@ -8,12 +8,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.chry.browser.download.Download;
 import com.chry.util.FileUtil;
 
 public class AsyncHttpClient extends HttpClient {
-	protected Map<Integer,String> _results = new ConcurrentHashMap<Integer,String>();
+    static Logger logger = LogManager.getLogger(AsyncHttpClient.class.getName());
+
+    protected Map<Integer,String> _results = new ConcurrentHashMap<Integer,String>();
 	private int _taskCount = 0;
-    ExecutorService _executor = Executors.newFixedThreadPool(10); 
+    ExecutorService _executor = Executors.newFixedThreadPool(1); 
 	
 	protected abstract class Task implements Runnable {
 		protected String _sUrl; 
@@ -57,6 +63,7 @@ public class AsyncHttpClient extends HttpClient {
 
 		@Override
 		public void run() {
+			logger.info("download begin ...");
 	    	try {
 	    		boolean redirect = true;
 	    		String sUrl = _sUrl;
@@ -86,6 +93,7 @@ public class AsyncHttpClient extends HttpClient {
 	    	} catch (Exception e) {
 	    		_progressListener.loadFinished(LoadEvent.getEvent(e));
 	    	}
+			logger.info("download done ...");
 		}		
 	}
 	
@@ -128,6 +136,11 @@ public class AsyncHttpClient extends HttpClient {
     public void clear() {
     	_results.clear();
     	_taskCount = 0;
+    	_executor.shutdown();
+    }
+    
+    public void stop() {
+    	_progressListener.setShutdown(true);
     	_executor.shutdown();
     }
 }

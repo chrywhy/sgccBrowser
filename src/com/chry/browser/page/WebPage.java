@@ -29,6 +29,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -122,6 +123,18 @@ public class WebPage extends CTabItem {
 			@Override
 			public void initSize(int size) {
 			}
+
+			@Override
+			public void setShutdown(boolean isShutdown) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public boolean isShutdown() {
+				// TODO Auto-generated method stub
+				return false;
+			}
     	};
 	}
 	
@@ -208,12 +221,25 @@ public class WebPage extends CTabItem {
     }
     
     private Browser _createBrowser(Composite composite, int browserType){
-		Browser browser = new Browser(composite, browserType);
+		final Browser browser = new Browser(composite, browserType);
 		new DomControl (_window, browser, "clickHyperLink");
 		final Menu browserMenu = new Menu(browser);
-		MenuItem item = new MenuItem(browserMenu, SWT.NONE);
-		item.setText("另外为...");
-		item.addSelectionListener(new SelectionListener() {
+		MenuItem itemOpen= new MenuItem(browserMenu, SWT.NONE);
+		itemOpen.setText("在新标签中打开链接");
+		itemOpen.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				_window.createPage(WebPage.Type.NormalPage, _latestText);
+			}
+		});
+		MenuItem itemSave= new MenuItem(browserMenu, SWT.NONE);
+		itemSave.setText("链接保存为...");
+		itemSave.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent arg0) {
 				// TODO Auto-generated method stub
@@ -224,6 +250,7 @@ public class WebPage extends CTabItem {
 				_window.saveAs(_latestText);
 			}
 		});
+
 		browser.setMenu(new Menu(browser));
 
 		browser.addMouseListener(new MouseListener(){
@@ -237,12 +264,18 @@ public class WebPage extends CTabItem {
 			@Override
 			public void mouseDown(MouseEvent e) {
 				if (e.button == 3) {
-					browserMenu.setVisible(true);
+					try {
+						new URL(_latestText);
+//						browser.setMenu(browserMenu);
+						browserMenu.setVisible(true);
+					} catch (Exception ex) {
+//						browser.setMenu(null);
+					}
 				}
 			}
 
 			@Override
-			public void mouseUp(MouseEvent arg0) {
+			public void mouseUp(MouseEvent e) {
 			}
         });
 		

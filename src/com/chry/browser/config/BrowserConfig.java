@@ -52,7 +52,6 @@ public class BrowserConfig {
 			"keywords"
 	};
 	
-	public static String HOME = "http://www.baidu.com"; 
 	public static String ROOT = System.getProperty("user.home");
 	public static String FavoritePath = ROOT + File.separator + ".safeBrowserFavorite";
 	public static String FaviconPath = FavoritePath + File.separator + "favicons";

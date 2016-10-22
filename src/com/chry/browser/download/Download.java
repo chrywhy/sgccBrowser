@@ -25,8 +25,9 @@ public class Download {
 	private long curSize;
 	private long epochStart;
 	private long epochDone;
-	
+	private boolean downloadJustCompleted;
 	private AsyncHttpClient httpclient = new AsyncHttpClient(new IHttpLoadProgressListener() {
+		boolean isShutdown = false;
 		@Override
 		public void loadStart() {
 			setEpochStart(System.currentTimeMillis());
@@ -38,6 +39,7 @@ public class Download {
 	        logger.info("save " + getUrl() + " as file: " + getPath() + File.separator + getFilename());        
 			setEpochDone(System.currentTimeMillis());
 			setProgress(10000);
+			downloadJustCompleted = true;
 		}
 
 		@Override
@@ -50,6 +52,16 @@ public class Download {
 		public void initSize(int size) {
 			totalSize = size;
 		}
+
+		@Override
+		public void setShutdown(boolean isShutdown) {
+			this.isShutdown = isShutdown;
+		}
+
+		@Override
+		public boolean isShutdown() {
+			return isShutdown;
+		}		
 	}
 );
 
@@ -69,6 +81,7 @@ public class Download {
 	    curSize = -1L;
 	    epochStart = 0L;
 	    epochDone = 0L;
+	    downloadJustCompleted = false;
 	}
 	
 	public Download(String sUrl) {
@@ -86,6 +99,7 @@ public class Download {
 	    curSize = -1L;
 	    epochStart = 0L;
 	    epochDone = 0L;
+	    downloadJustCompleted = false;
 	}
 	
 	public String getPath() {
@@ -144,10 +158,20 @@ public class Download {
 	}
 
 	public boolean isFinished() {
-		return totalSize == curSize;
+		return (totalSize == curSize || totalSize == 0);
+	}
+	
+	public boolean isJustFinished() {
+		boolean isJustFinished = downloadJustCompleted;
+		downloadJustCompleted = false;
+		return isJustFinished;
 	}
 	
 	public void start() {
 		httpclient.startDownload(sUrl, path, filename);
 	}	
+
+	public void stop() {
+		httpclient.stop();
+	}
 }

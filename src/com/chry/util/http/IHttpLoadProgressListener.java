@@ -8,4 +8,8 @@ public abstract interface IHttpLoadProgressListener {
     public abstract void loadFinished(LoadEvent e);
 
     public abstract void progress(int size);
+
+    public abstract void setShutdown(boolean isShutdown);
+
+    public abstract boolean isShutdown();
 }

@@ -45,7 +45,7 @@ public class StreamUtil {
             }
         }
     }
-
+    
     public static long inputStreamToOutputStream(InputStream is, OutputStream os, IHttpLoadProgressListener listener) {
         try {
             if (is == null) {
@@ -58,7 +58,10 @@ public class StreamUtil {
                 listener.loadStart();
             }
             while ((len = is.read(buf)) > 0) {
-                os.write(buf, 0, len);
+            	if (listener.isShutdown()) {
+            		throw new InterruptedException("write Stopped !");
+            	}
+            	os.write(buf, 0, len);
                 if (listener != null) {
                     listener.progress(len);
                 }
@@ -66,7 +69,7 @@ public class StreamUtil {
             }
             os.flush();
             return count;
-        } catch (IOException e) {
+        } catch (Exception e) {
         	throw new HttpException(e);
         } finally {
         	try {
@@ -79,7 +82,7 @@ public class StreamUtil {
 	            if (listener != null) {
 	                listener.loadFinished(LoadEvent.OKEvent);
 	            }
-        	} catch (IOException e) {
+        	} catch (Exception e) {
             	throw new HttpException(e);
         	}
         }

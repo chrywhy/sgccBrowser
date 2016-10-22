@@ -29,7 +29,7 @@ public class HttpException extends RuntimeException {
         this._statusCode = code;
     }
 
-    public HttpException(IOException e) {
+    public HttpException(Exception e) {
         super(e);
         this._statusCode = IO_ERROR;
     }

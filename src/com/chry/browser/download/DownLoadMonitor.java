@@ -14,6 +14,7 @@ public class DownLoadMonitor {
     static Logger logger = LogManager.getLogger(DownLoadMonitor.class.getName());
 	public static class Task implements Runnable {
 		private DownloadPage _downloadPage;
+		boolean _hasDownloadComplete = false;
 		boolean isRun;
 		Task(DownloadPage downloadPage) {
 			_downloadPage = downloadPage;
@@ -23,9 +24,14 @@ public class DownLoadMonitor {
 		}
 		@Override
 		public void run() {
-//			logger.info("refresh download page begin");
-			_downloadPage.refreshProgress();
-//			logger.info("refresh download page done");
+			logger.debug("download monitor begin");
+			if (_hasDownloadComplete) {
+				_downloadPage.refresh();
+				_hasDownloadComplete = false;
+			} else {
+				_downloadPage.refreshProgress();
+			}
+			logger.debug("download monitor done");
 		}
 	}
 
@@ -46,5 +52,10 @@ public class DownLoadMonitor {
 	public void stopMonitor() {
 		_detectSchedule.cancel(true);
 		_executor.shutdown();
+		logger.info("download monitor shutdown");
+	}
+	
+	public void setHasDownloadComplete() {
+		_task._hasDownloadComplete = true;
 	}
 }
