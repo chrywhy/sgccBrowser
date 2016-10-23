@@ -29,8 +29,24 @@ public class DownloadPage extends CTabItem {
 	
 	public DownloadPage(CTabFolder parent, int style, int index) {
 		super(parent, style, index);
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent arg0) {
+			}
+		});
 	}
 
+	public void closeHttpClients() {
+		for (DownloadItem downloadItem : downloadItems) {
+			downloadItem.getDownload().shutdownHttpClient();
+		}
+	}
+	
+	public void clearDownloadItems() {
+		closeHttpClients();
+		downloadItems.clear();
+	}
+	
 	public DownloadPage(BrowserWindow window, int index) {
 		this(window.getPageFolder(), SWT.BORDER | SWT.CLOSE, index);
 		_window = window;
@@ -55,7 +71,7 @@ public class DownloadPage extends CTabItem {
 	}
 	
 	private void _loadDownloadItems() {
-		downloadItems.clear();
+		clearDownloadItems();
 		List<Download> downloads = Downloads.getDownloads();
 		int y = 50;
 		for (int i = downloads.size() - 1; i >= 0; i--) {

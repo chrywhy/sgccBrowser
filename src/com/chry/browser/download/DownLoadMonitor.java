@@ -26,14 +26,14 @@ public class DownLoadMonitor {
 		@Override
 		public void run() {
 			Display display = Display.getDefault();
-	    	display.syncExec(new Runnable() {
+	    	display.asyncExec(new Runnable() {
 				@Override
 				public void run() {
 					try {
 						CTabItem activePage = _window.getActivePage();
 						if (activePage instanceof DownloadPage) {
-							DownloadPage monitoringPage = (DownloadPage)activePage;
 							logger.debug("download monitor begin");
+							DownloadPage monitoringPage = (DownloadPage)activePage;
 							if (_hasDownloadComplete) {
 								logger.info("has download done, refresh");
 								monitoringPage.refresh();

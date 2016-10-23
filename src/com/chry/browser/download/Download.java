@@ -219,10 +219,13 @@ public class Download {
 	}	
 
 	public void stop() {
-		httpclient.stop();
 		if (status != Status.Downloading) {
 			epochDone = System.currentTimeMillis();
 			status = Status.Abort;
 		}
+	}
+	
+	public void shutdownHttpClient() {
+		httpclient.stop();
 	}
 }

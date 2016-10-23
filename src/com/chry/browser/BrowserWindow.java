@@ -1320,10 +1320,10 @@ public class BrowserWindow {
 	        download.setFilename(filedlg.getFileName());
 	        download.setPath(filedlg.getFilterPath());
 	        Downloads.add(download);
+	        MessageBox messageBox = new MessageBox(_shell, SWT.ICON_INFORMATION|SWT.OK);
+	        messageBox.setMessage("已经开始下载，请到下载管理页面查看进度");
+	        messageBox.open();
         }
-        MessageBox messageBox = new MessageBox(_shell, SWT.ICON_INFORMATION|SWT.OK);
-        messageBox.setMessage("已经开始下载，请到下载管理页面查看进度");
-        messageBox.open();
         return fileFullPath;
 	}
 }

@@ -149,5 +149,6 @@ public class AsyncHttpClient extends HttpClient {
     public void stop() {
     	_progressListener.setShutdown(true);
     	_executor.shutdown();
+    	logger.info("AsyncHttpClient shutdown");
     }
 }

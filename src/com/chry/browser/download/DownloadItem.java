@@ -53,7 +53,7 @@ public class DownloadItem {
 		Label lbClear = new Label(downloadComposite, SWT.NONE);
 		if (downloadUI) {
 			progressBar = new ProgressBar(downloadComposite, SWT.SMOOTH);
-			progressBar.setBounds(22, 66, 570, 17);
+			progressBar.setBounds(22, 66, 580, 17);
 			progressBar.setMaximum(100);
 			progressBar.setMinimum(0);
 			  
@@ -85,7 +85,7 @@ public class DownloadItem {
 		});
 		
 		lbProgressInfo = new Label(downloadComposite, SWT.NONE);
-		lbProgressInfo.setBounds(22, 46, 568, 17);
+		lbProgressInfo.setBounds(22, 46, 600, 17);
 		refreshProgress(true);
 		
 		lbClear.addMouseListener(new MouseAdapter() {
