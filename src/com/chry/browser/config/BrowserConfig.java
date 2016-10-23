@@ -18,6 +18,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 
 import com.chry.browser.bookmark.BookMark;
+import com.chry.browser.download.Downloads;
 import com.chry.browser.safe.SafeGate;
 import com.chry.util.FileUtil;
 import com.chry.util.PropConf;
@@ -25,6 +26,7 @@ import com.chry.util.swt.SWTResourceManager;
 
 public class BrowserConfig {
 	static Logger logger = LogManager.getLogger(BrowserConfig.class.getName());
+	public static Boolean EnableSysMenu = false;
 	
 	public static String SafePolicyServer = "127.0.0.1";
 	public static String[] KEYPROPOSAL = new String[] { 
@@ -91,6 +93,7 @@ public class BrowserConfig {
 		}
 		SafeGate.loadSafePolicy();
 		BookMark.load();
+		Downloads.load();
 	}
 	
 	public static void addNewSite(String host) {

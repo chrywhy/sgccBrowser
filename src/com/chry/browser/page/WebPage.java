@@ -135,6 +135,18 @@ public class WebPage extends CTabItem {
 				// TODO Auto-generated method stub
 				return false;
 			}
+
+			@Override
+			public void loadAborted(LoadEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void findingResource() {
+				// TODO Auto-generated method stub
+				
+			}
     	};
 	}
 	
@@ -224,7 +236,9 @@ public class WebPage extends CTabItem {
 		final Browser browser = new Browser(composite, browserType);
 		new DomControl (_window, browser, "clickHyperLink");
 		final Menu browserMenu = new Menu(browser);
-		MenuItem itemOpen= new MenuItem(browserMenu, SWT.NONE);
+		final Menu nullMenu = new Menu(browser);
+		browser.setMenu(browserMenu);
+		final MenuItem itemOpen= new MenuItem(browserMenu, SWT.NONE);
 		itemOpen.setText("在新标签中打开链接");
 		itemOpen.addSelectionListener(new SelectionListener() {
 			@Override
@@ -237,7 +251,7 @@ public class WebPage extends CTabItem {
 				_window.createPage(WebPage.Type.NormalPage, _latestText);
 			}
 		});
-		MenuItem itemSave= new MenuItem(browserMenu, SWT.NONE);
+		final MenuItem itemSave= new MenuItem(browserMenu, SWT.NONE);
 		itemSave.setText("链接保存为...");
 		itemSave.addSelectionListener(new SelectionListener() {
 			@Override
@@ -266,10 +280,14 @@ public class WebPage extends CTabItem {
 				if (e.button == 3) {
 					try {
 						new URL(_latestText);
-//						browser.setMenu(browserMenu);
+						browser.setMenu(browserMenu);
 						browserMenu.setVisible(true);
-					} catch (Exception ex) {
-//						browser.setMenu(null);
+					} catch (Exception ex) {		
+						if (BrowserConfig.EnableSysMenu) {
+							browser.setMenu(null);
+						} else {
+							browser.setMenu(nullMenu);
+						}
 					}
 				}
 			}

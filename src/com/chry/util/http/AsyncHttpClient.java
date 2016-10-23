@@ -19,7 +19,7 @@ public class AsyncHttpClient extends HttpClient {
 
     protected Map<Integer,String> _results = new ConcurrentHashMap<Integer,String>();
 	private int _taskCount = 0;
-    ExecutorService _executor = Executors.newFixedThreadPool(1); 
+    ExecutorService _executor = Executors.newSingleThreadExecutor(); 
 	
 	protected abstract class Task implements Runnable {
 		protected String _sUrl; 
@@ -67,6 +67,7 @@ public class AsyncHttpClient extends HttpClient {
 	    	try {
 	    		boolean redirect = true;
 	    		String sUrl = _sUrl;
+		    	_progressListener.findingResource();
 	    		while (redirect) {
 	    			redirect = false;
 			    	HttpResponseStream rspStream = get(sUrl, redirect);
@@ -77,7 +78,9 @@ public class AsyncHttpClient extends HttpClient {
 				    	_progressListener.initSize(size);
 				    	FileUtil.createFile(_filePath);
 				    	FileOutputStream fos = new FileOutputStream(_filePath);
+				    	_progressListener.loadStart();
 				        rspStream.decodeToStream(fos, _progressListener);
+				        _progressListener.loadFinished(LoadEvent.OKEvent);
 			    	} else if (code == 302 || code == 301){
 				    	String location = conn.getHeaderField("Location");
 				    	if (location.endsWith(_filename)) {
@@ -91,7 +94,11 @@ public class AsyncHttpClient extends HttpClient {
 			    	}
 	    		}
 	    	} catch (Exception e) {
-	    		_progressListener.loadFinished(LoadEvent.getEvent(e));
+	    		if (e instanceof HttpException) {
+	    			_progressListener.loadAborted(LoadEvent.getEvent(e));
+	    		} else {
+	    			_progressListener.loadFinished(LoadEvent.getEvent(e));
+	    		}
 	    	}
 			logger.info("download done ...");
 		}		

@@ -17,7 +17,8 @@ import com.chry.util.http.LoadEvent;
 
 public class Download {
     static Logger logger = LogManager.getLogger(Download.class.getName());
-
+    public static enum Status { Finding, Downloading, NotFound, Abort, Finished };
+    
     private String path;
 	private String filename;
 	private String sUrl;
@@ -25,22 +26,46 @@ public class Download {
 	private long curSize;
 	private long epochStart;
 	private long epochDone;
+	private Status status;
+	
 	private boolean downloadJustCompleted;
 	private AsyncHttpClient httpclient = new AsyncHttpClient(new IHttpLoadProgressListener() {
 		boolean isShutdown = false;
 		@Override
+		public void findingResource() {
+			setEpochStart(System.currentTimeMillis());
+			setProgress(0);
+	        status = Status.Finding;
+		}
+
+		@Override
 		public void loadStart() {
 			setEpochStart(System.currentTimeMillis());
 			setProgress(0);
+	        status = Status.Downloading;
 		}
 
 		@Override
 		public void loadFinished(LoadEvent e) {
-	        logger.info("save " + getUrl() + " as file: " + getPath() + File.separator + getFilename());        
-			setEpochDone(System.currentTimeMillis());
-			setProgress(10000);
-			downloadJustCompleted = true;
+			if (e.status == LoadEvent.OK) {
+		        logger.info("save " + getUrl() + " as file: " + getPath() + File.separator + getFilename());
+				setEpochDone(System.currentTimeMillis());
+				setProgress(10000);
+				downloadJustCompleted = true;
+		        status = Status.Finished;
+			} else {
+		        logger.info("download " + getUrl() + " failed: " + e.error.getMessage());        
+				setEpochDone(System.currentTimeMillis());
+		        status = Status.NotFound;
+			}
 		}
+
+		@Override
+		public void loadAborted(LoadEvent e) {
+	        logger.info("download " + getUrl() + " aborted, partial file is: " + getPath() + File.separator + getFilename());        
+			setEpochDone(System.currentTimeMillis());
+	        status = Status.Abort;
+		}		
 
 		@Override
 		public void progress(int size) {
@@ -61,7 +86,7 @@ public class Download {
 		@Override
 		public boolean isShutdown() {
 			return isShutdown;
-		}		
+		}
 	}
 );
 
@@ -82,6 +107,7 @@ public class Download {
 	    epochStart = 0L;
 	    epochDone = 0L;
 	    downloadJustCompleted = false;
+	    status = Status.Finding;
 	}
 	
 	public Download(String sUrl) {
@@ -100,6 +126,7 @@ public class Download {
 	    epochStart = 0L;
 	    epochDone = 0L;
 	    downloadJustCompleted = false;
+	    status = Status.Finding;
 	}
 	
 	public String getPath() {
@@ -157,8 +184,28 @@ public class Download {
 		this.epochDone = epoch;
 	}
 
-	public boolean isFinished() {
-		return (totalSize == curSize || totalSize == 0);
+	public Status getStatus() {
+		return status;
+	}
+	
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+		
+	public void setStatus(String status) {
+		if (Status.Finding.name().equalsIgnoreCase(status)) {
+			this.status = Status.Finding;
+		} else if (Status.Abort.name().equalsIgnoreCase(status)) {
+			this.status = Status.Abort;
+		} else if (Status.Finished.name().equalsIgnoreCase(status)) {
+			this.status = Status.Finished;
+		} else if (Status.NotFound.name().equalsIgnoreCase(status)) {
+			this.status = Status.NotFound;
+		} else if (Status.Downloading.name().equalsIgnoreCase(status)) {
+			this.status = Status.Downloading;
+		} else {
+			this.status = Status.Abort;
+		}
 	}
 	
 	public boolean isJustFinished() {
@@ -173,5 +220,9 @@ public class Download {
 
 	public void stop() {
 		httpclient.stop();
+		if (status != Status.Downloading) {
+			epochDone = System.currentTimeMillis();
+			status = Status.Abort;
+		}
 	}
 }

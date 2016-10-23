@@ -34,6 +34,7 @@ public class DownloadPage extends CTabItem {
 			@Override
 			public void widgetDisposed(DisposeEvent arg0) {
 				progressMonitor.stopMonitor();
+				progressMonitor = null;
 			}
 		});
 	}
@@ -81,10 +82,8 @@ public class DownloadPage extends CTabItem {
 	
 	public void refreshProgress() {
 		for (DownloadItem downloadItem : downloadItems) {
-			logger.info("refresh download Item: " + downloadItem.getDownload().getFilename());
-			downloadItem.refreshProgress();
+			downloadItem.refreshProgress(false);
 		}
-		logger.info("refresh downloads finished");
 	}
 	
 	public void setHasDownloadComplete() {

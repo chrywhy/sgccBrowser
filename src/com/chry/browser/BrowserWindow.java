@@ -1,6 +1,5 @@
 package com.chry.browser;
 
-import java.awt.Cursor;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -24,8 +23,6 @@ import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -64,20 +61,16 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import com.chry.browser.bookmark.AddBookItemDialog;
 import com.chry.browser.bookmark.BookMark;
-import com.chry.browser.bookmark.BookMark.Type;
 import com.chry.browser.config.BrowserConfig;
 import com.chry.browser.config.ImageConfig;
 import com.chry.browser.download.Download;
+import com.chry.browser.download.Download.Status;
 import com.chry.browser.download.Downloads;
 import com.chry.browser.page.BookPage;
 import com.chry.browser.page.DownloadPage;
 import com.chry.browser.page.WebPage;
 import com.chry.browser.safe.LoginDialog;
 import com.chry.browser.safe.SafeGate;
-import com.chry.util.FileUtil;
-import com.chry.util.http.AsyncHttpClient;
-import com.chry.util.http.IHttpLoadProgressListener;
-import com.chry.util.http.LoadEvent;
 import com.chry.util.swt.SWTResourceManager;
 import com.chry.util.swt.layout.BorderLayout;
 
@@ -106,6 +99,8 @@ public class BrowserWindow {
     
     private ToolBar _menuBar;
     private ToolItem _btnMenu;
+    private MenuItem _itemSysMenu;
+    private MenuItem _itemSave;
     private MenuItem _itemLoginOrLogout;
     private MenuItem _itemAdminUser;
     private MenuItem _itemAdminSite;
@@ -159,14 +154,14 @@ public class BrowserWindow {
     private void _initTitleArea() {
         _shell.setToolTipText("国网自主虚拟化双核浏览器V1.0");
         _shell.setImage(SWTResourceManager.getImage(BrowserWindow.class, "/com/chry/browser/resource/images/sg-logo.png"));
-        _shell.setText("国网自主双核安全浏览器V1.0(2016-10-16)");
+        _shell.setText("国网自主双核安全浏览器V1.0(2016-10-23)");
         _shell.setLayout(new BorderLayout(0, 0));
     }
     
     private boolean _killDownloading() {
     	boolean forceStop = false;
 		for (Download download: Downloads.getDownloads()) {
-			if (!download.isFinished()) {
+			if (download.getStatus() == Status.Downloading) {
 				if (forceStop == false) {
 					int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
 				    MessageBox messageBox = new MessageBox(_shell, style);
@@ -207,9 +202,9 @@ public class BrowserWindow {
     private void _initMenuArea() {
     	_menu = new Menu(_shell, SWT.POP_UP);
 
-        MenuItem menuItem_save = new MenuItem(_menu, SWT.NONE);
-        menuItem_save.setText("保存网页");
-        menuItem_save.addSelectionListener(new SelectionAdapter() {            
+        _itemSave = new MenuItem(_menu, SWT.NONE);
+        _itemSave.setText("保存网页");
+        _itemSave.addSelectionListener(new SelectionAdapter() {            
             public void widgetSelected(SelectionEvent e) {
 /*                
                 String pageText = getActiveWebPage().getBrowser().getText();
@@ -219,7 +214,9 @@ public class BrowserWindow {
                 String selected = filedlg.open();
                 FileUtil.WriteStringToFile(pageText, selected);
 */
-        		getActiveWebPage().getBrowser().execute("document.execCommand('SaveAs')");
+            	if (getActivePage() instanceof WebPage) {
+            		getActiveWebPage().getBrowser().execute("document.execCommand('SaveAs')");
+            	}
             }
         });
         
@@ -247,6 +244,15 @@ public class BrowserWindow {
             }
         });
 
+        _itemSysMenu = new MenuItem(_menu, SWT.NONE);
+        _itemSysMenu.setText("开启系统右键菜单");
+        _itemSysMenu.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	BrowserConfig.EnableSysMenu = !BrowserConfig.EnableSysMenu;
+            }
+        });
+        
         new MenuItem(_menu, SWT.SEPARATOR);
 
         _itemLoginOrLogout = new MenuItem(_menu, SWT.NONE);
@@ -440,6 +446,8 @@ public class BrowserWindow {
                     Point pt = new Point(rect.x, rect.y + rect.height);
                     pt = _toolBar.toDisplay(pt);
                     _menu.setLocation(pt.x, pt.y);
+                	_itemSave.setEnabled(getActivePage() instanceof WebPage);
+                	_itemSysMenu.setText(BrowserConfig.EnableSysMenu ? "关闭系统菜单" : "开启系统菜单");
                     _menu.setVisible(true);
                 }
         });        
@@ -962,6 +970,10 @@ public class BrowserWindow {
             	} else if (e.item instanceof BookPage) {
                     BookPage bookPage = (BookPage)e.item;
                     _activePage = bookPage;
+            	} else if (e.item instanceof DownloadPage) {
+            		DownloadPage downloadPage = (DownloadPage)e.item;
+            		_activePage = downloadPage;
+            		downloadPage.refresh();
             	}
             }
 
@@ -973,9 +985,13 @@ public class BrowserWindow {
 	                	String sUrl = webPage.getUrl().trim();
                 		_window.setUrl(sUrl);
 	                }
-            	} else {
+            	} else if (e.item instanceof BookPage) {
                     setUrl("");
-            	}
+	        	} else if (e.item instanceof DownloadPage) {
+	        		setUrl("");
+	        		DownloadPage downloadPage = (DownloadPage)e.item;
+	        		downloadPage.refresh();
+	        	}
                 _activePage = (CTabItem)e.item;
             }
         });
@@ -1262,6 +1278,10 @@ public class BrowserWindow {
     	}
     }
     
+	public CTabItem getActivePage() {
+		return _activePage;
+	}
+	
 	public WebPage getActiveWebPage() {
 		if (_activePage instanceof WebPage) {
 			return (WebPage)_activePage;
@@ -1278,20 +1298,23 @@ public class BrowserWindow {
 		try {
 			new URL(sUrl);
 		} catch (Exception e){
-    		getActiveWebPage().getBrowser().execute("document.execCommand('SaveAs')");
     		return "";
 		}
 		Download download = new Download(sUrl);
-        FileDialog filedlg = new FileDialog(_shell, SWT.OPEN);
+        FileDialog filedlg = new FileDialog(_shell, SWT.SAVE);
         filedlg.setText("文件选择");
         filedlg.setFilterPath(BrowserConfig.DownloadFolder);
         filedlg.setFileName(download.getFilename());
+        filedlg.setOverwrite(true);
         final String fileFullPath = filedlg.open();
         if (fileFullPath != null) {
 	        download.setFilename(filedlg.getFileName());
 	        download.setPath(filedlg.getFilterPath());
 	        Downloads.add(download);
         }
+        MessageBox messageBox = new MessageBox(_shell, SWT.ICON_INFORMATION|SWT.OK);
+        messageBox.setMessage("已经开始下载，请到下载管理页面查看进度");
+        messageBox.open();
         return fileFullPath;
 	}
 }

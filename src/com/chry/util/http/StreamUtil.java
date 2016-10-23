@@ -79,9 +79,6 @@ public class StreamUtil {
 	            if (os != null) {
 	                os.close();
 	            }
-	            if (listener != null) {
-	                listener.loadFinished(LoadEvent.OKEvent);
-	            }
         	} catch (Exception e) {
             	throw new HttpException(e);
         	}

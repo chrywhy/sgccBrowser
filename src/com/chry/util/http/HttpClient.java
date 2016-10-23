@@ -67,7 +67,7 @@ public class HttpClient {
 
         if (_httpConf.isSslEnforceStrongCipher()) {
             try {
-                logger.info("Try enforce strong ciphers");
+                logger.debug("Try enforce strong ciphers");
                 SSLHelper.enforceStrongCiphers();
             }
             catch (Exception e) {
@@ -77,7 +77,7 @@ public class HttpClient {
 
         if(_httpConf.isSslTrustAll()) {
             try {
-            	logger.info("Try trust all certificates");
+            	logger.debug("Try trust all certificates");
                 SSLHelper.trustAllHttpsCertificates();
             }
             catch (Exception e) {

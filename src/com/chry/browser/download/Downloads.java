@@ -17,15 +17,13 @@ public class Downloads {
 	private static List<Download> downloads = new LinkedList<Download>();
 	
 	public static List<Download> getDownloads() {
-		if (downloads.isEmpty()) {
-			load();
-		}
 		return downloads;
 	}
 	
 	public static void add(Download download) {
 		downloads.add(download);
 		download.start();
+		Downloads.save();
 	}
 
 	public static void remove(Download download) {
@@ -48,6 +46,7 @@ public class Downloads {
 				download.setCurSize(item.getLong("curSize"));
 				download.setEpochStart(item.getLong("epochStart"));
 				download.setEpochDone(item.getLong("epochDone"));
+				download.setStatus(item.getString("status"));
 				downloads.add(download);
 			}
 		} catch(Exception e) {
@@ -69,6 +68,7 @@ public class Downloads {
 				item.put("curSize", download.getCurSize());
 				item.put("epochStart", download.getEpochStart());
 				item.put("epochDone", download.getEpochDone());
+				item.put("status", download.getStatus().name());
 				jArray.put(item);
 			}
 		} catch(Exception e) {
