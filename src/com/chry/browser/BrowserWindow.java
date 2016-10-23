@@ -63,6 +63,7 @@ import com.chry.browser.bookmark.AddBookItemDialog;
 import com.chry.browser.bookmark.BookMark;
 import com.chry.browser.config.BrowserConfig;
 import com.chry.browser.config.ImageConfig;
+import com.chry.browser.download.DownLoadMonitor;
 import com.chry.browser.download.Download;
 import com.chry.browser.download.Download.Status;
 import com.chry.browser.download.Downloads;
@@ -131,6 +132,7 @@ public class BrowserWindow {
     private Menu _moreMenu = null;
 
     int newPageHashCode;
+    public static DownLoadMonitor downLoadMonitor;
     
     public BrowserWindow() {
         _shell = new Shell();
@@ -149,6 +151,8 @@ public class BrowserWindow {
         _initPageEvents();
         _initFootArea();        
         _initPageFolderEvent(); //events related to web page
+        downLoadMonitor = new DownLoadMonitor(this);
+        downLoadMonitor.startMonitor();
     }
     
     private void _initTitleArea() {
@@ -159,9 +163,10 @@ public class BrowserWindow {
     }
     
     private boolean _killDownloading() {
+    	downLoadMonitor.stopMonitor();
     	boolean forceStop = false;
 		for (Download download: Downloads.getDownloads()) {
-			if (download.getStatus() == Status.Downloading) {
+			if (download.getStatus() == Status.Downloading || download.getStatus() == Status.Finding) {
 				if (forceStop == false) {
 					int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
 				    MessageBox messageBox = new MessageBox(_shell, style);
@@ -175,6 +180,7 @@ public class BrowserWindow {
 				download.stop();
 			}
 		}
+		Downloads.save();
 		return true;
     }
     
@@ -1203,7 +1209,6 @@ public class BrowserWindow {
 		_pageFolder.setSelection(downloadPage);
 		_activePage = downloadPage;
 		downloadPage.refresh();
-		downloadPage.startMonitor();
 		return downloadPage;
     }
     
@@ -1292,6 +1297,10 @@ public class BrowserWindow {
 			_pageFolder.setSelection(_activePage);
 			return (WebPage)_activePage;
 		}
+	}
+	
+	public DownLoadMonitor getDownloadMonitor() {
+		return downLoadMonitor;
 	}
 	
 	public String saveAs(final String sUrl) {

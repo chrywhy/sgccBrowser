@@ -23,7 +23,7 @@ public class DownloadItem {
     Composite _parent;
 	int _y;
 	Download _download;
-	Label lbProgressInfo;
+	public Label lbProgressInfo;
 	Label lbPercent;
 	ProgressBar progressBar;
 	int _height;
@@ -96,7 +96,6 @@ public class DownloadItem {
 				} else {
 					Downloads.remove(_download);
 					_downloadPage.refresh();
-					Downloads.save();
 				}
 			}
 		});
@@ -172,42 +171,38 @@ public class DownloadItem {
 	
 	public void refreshProgress(boolean refreshFinishedItem) {
     	final boolean refreshFinishedItems = refreshFinishedItem;
-    	try {
-			if (_download.getStatus()==Status.Abort && refreshFinishedItems) {
-				lbProgressInfo.setText("下载已中断 --"
-				   + " 总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
-				   + ", 已下载:" + getSizeWithAutoUnit(_download.getCurSize()) 
-				   + ", 剩余:" + getSizeWithAutoUnit(_download.getLeftSize())
-				   + ", 终止时间:" + getTime(_download.getEpochDone()));
-			} else if (_download.getStatus()==Status.Finding) {
-				lbProgressInfo.setText("正在寻找资源...");
-			} else if (_download.getStatus()==Status.NotFound) {
-				lbProgressInfo.setText("下载失败 --"
-				   + " 下载文件未找到" 
-				   + ",下载时间:" + getTime(_download.getEpochStart()));
-			} else if (_download.getStatus()==Status.Downloading) {
-				lbProgressInfo.setText("正在下载 --"
-				   + " 总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
-				   + ", 已下载:" + getSizeWithAutoUnit(_download.getCurSize()) 
-				   + ", 剩余:" + getSizeWithAutoUnit(_download.getLeftSize())
-				   + ", 平均速率：" + getSpeedWithAutoUnit(_download.getCurSize(), _download.getEpochStart())
-				   + ", 大约需要:" + getTimeWithAutoUnit(_download.getTotalSize(), _download.getCurSize(), _download.getEpochStart()));
-		    	int percent = (int)(_download.getCurSize() * 100 / _download.getTotalSize());
-				progressBar.setSelection(percent);
-				lbPercent.setText(percent + "%");
-			} else if (_download.isJustFinished()) {
-					_downloadPage.setHasDownloadComplete();
-					progressBar.setSelection(100);
-					lbPercent.setText("100%");
-					lbProgressInfo.setText("总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
-					   + ", 完成时间:" + getTime(_download.getEpochDone()));
-			} else if (_download.getStatus()==Status.Finished && refreshFinishedItems) {
-				lbProgressInfo.setText("下载已完成 --"
-				   + " 总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
+		if (_download.getStatus()==Status.Abort && refreshFinishedItems) {
+			lbProgressInfo.setText("下载已中断 --"
+			   + " 总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
+			   + ", 已下载:" + getSizeWithAutoUnit(_download.getCurSize()) 
+			   + ", 剩余:" + getSizeWithAutoUnit(_download.getLeftSize())
+			   + ", 终止时间:" + getTime(_download.getEpochDone()));
+		} else if (_download.getStatus()==Status.Finding) {
+			lbProgressInfo.setText("正在寻找资源...");
+		} else if (_download.getStatus()==Status.NotFound) {
+			lbProgressInfo.setText("下载失败 --"
+			   + " 下载文件未找到" 
+			   + ",下载时间:" + getTime(_download.getEpochStart()));
+		} else if (_download.getStatus()==Status.Downloading) {
+			lbProgressInfo.setText("正在下载 --"
+			   + " 总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
+			   + ", 已下载:" + getSizeWithAutoUnit(_download.getCurSize()) 
+			   + ", 剩余:" + getSizeWithAutoUnit(_download.getLeftSize())
+			   + ", 平均速率：" + getSpeedWithAutoUnit(_download.getCurSize(), _download.getEpochStart())
+			   + ", 大约需要:" + getTimeWithAutoUnit(_download.getTotalSize(), _download.getCurSize(), _download.getEpochStart()));
+	    	int percent = (int)(_download.getCurSize() * 100 / _download.getTotalSize());
+			progressBar.setSelection(percent);
+			lbPercent.setText(percent + "%");
+		} else if (_download.isJustFinished()) {
+				_downloadPage.setHasDownloadComplete();
+				progressBar.setSelection(100);
+				lbPercent.setText("100%");
+				lbProgressInfo.setText("总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
 				   + ", 完成时间:" + getTime(_download.getEpochDone()));
-			}
-    	} catch (Exception e) {
-    		logger.error(e.getMessage());
-    	}
+		} else if (_download.getStatus()==Status.Finished && refreshFinishedItems) {
+			lbProgressInfo.setText("下载已完成 --"
+			   + " 总大小：" + getSizeWithAutoUnit(_download.getTotalSize()) 
+			   + ", 完成时间:" + getTime(_download.getEpochDone()));
+		}
 	}
 }

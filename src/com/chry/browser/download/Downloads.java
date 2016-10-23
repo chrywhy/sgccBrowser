@@ -23,7 +23,6 @@ public class Downloads {
 	public static void add(Download download) {
 		downloads.add(download);
 		download.start();
-		Downloads.save();
 	}
 
 	public static void remove(Download download) {
